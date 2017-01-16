@@ -45,6 +45,7 @@ class Customizer {
 		add_filter( 'customize_dynamic_setting_args', array( $this, 'filter_customize_dynamic_setting_args' ), 10, 2 );
 		add_filter( 'customize_dynamic_setting_class', array( $this, 'filter_customize_dynamic_setting_class' ), 10, 3 );
 		add_action( 'customize_register', array( $this, 'add_partials' ), 100 );
+		add_action( 'customize_preview_init', array( $this, 'preview_items_list' ) );
 
 		add_action( 'customize_controls_enqueue_scripts', array( $this, 'enqueue_pane_dependencies' ) );
 		add_action( 'customize_controls_print_footer_scripts', array( $this, 'render_customize_templates' ) );
@@ -103,6 +104,43 @@ class Customizer {
 			'title' => __( 'Featured Items', 'customize-featured-content-demo' ),
 		) );
 		// Note that sections will by dynamically added via JS.
+	}
+
+	/**
+	 * Preview featured item insertions (auto-drafts) and deletions.
+	 */
+	public function preview_items_list() {
+		add_filter( 'customize_featured_content_demo_items', array( $this, 'filter_featured_items' ) );
+	}
+
+	/**
+	 * Filter featured items list to inject featured_item auto-draft post IDs.
+	 *
+	 * @param array $item_ids Items.
+	 * @returns array Item IDs.
+	 */
+	public function filter_featured_items( $item_ids ) {
+		$created_posts_setting = $this->manager->get_setting( 'nav_menus_created_posts' );
+
+		// Amend the items list with any auto-draft posts created in the customize session.
+		foreach ( $created_posts_setting->post_value( array() ) as $post_id ) {
+			$post = get_post( $post_id );
+			if ( $post && Model::SLUG === $post->post_type ) {
+				$item_ids[] = $post->ID;
+			}
+		}
+
+		// Remove items that have been marked for deletion.
+		$manager = $this->manager; // For PHP 5.3.
+		$item_ids = array_filter(
+			$item_ids,
+			function ( $item_id ) use ( $manager ) {
+				$setting = $manager->get_setting( Customize_Setting::get_setting_id( $item_id ) );
+				return ! ( $setting && false === $setting->post_value() );
+			}
+		);
+
+		return $item_ids;
 	}
 
 	/**
