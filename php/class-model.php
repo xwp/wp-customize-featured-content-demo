@@ -56,7 +56,7 @@ class Model {
 	public function get_item_schema_properties() {
 		return array(
 			'related_post_id' => array(
-				'type' => 'int',
+				'type' => 'integer',
 				'default' => 0,
 				'minimum' => 0,
 				'validate_callback' => array( $this, 'validate_post_id' ),
@@ -70,14 +70,14 @@ class Model {
 				'storage' => array( 'postmeta', 'url' ),
 			),
 			'featured_image_id' => array(
-				'type' => 'int',
+				'type' => 'integer',
 				'default' => 0,
 				'minimum' => 0,
 				'validate_callback' => array( $this, 'validate_post_id' ),
 				'storage' => array( 'postmeta', '_thumbnail_id' ),
 			),
 			'position' => array(
-				'type' => 'int',
+				'type' => 'integer',
 				'default' => 0,
 				'minimum' => 0,
 				'storage' => array( 'post', 'menu_order' ),
@@ -100,19 +100,19 @@ class Model {
 				'storage' => array( 'postmeta', 'title_background' ),
 			),
 			'title_font_size' => array(
-				'type' => 'int',
-				'default' => 0,
+				'type' => 'integer',
+				'default' => 50,
 				'minimum' => 8,
 				'maximum' => 100,
 				'storage' => array( 'postmeta', 'title_font_size' ),
 			),
 			'title_top' => array(
-				'type' => 'int',
+				'type' => 'integer',
 				'default' => 0,
 				'storage' => array( 'postmeta', 'title_top' ),
 			),
 			'title_left' => array(
-				'type' => 'int',
+				'type' => 'integer',
 				'default' => 0,
 				'storage' => array( 'postmeta', 'title_left' ),
 			),
@@ -134,19 +134,19 @@ class Model {
 				'storage' => array( 'postmeta', 'description_background' ),
 			),
 			'description_font_size' => array(
-				'type' => 'int',
-				'default' => 0,
+				'type' => 'integer',
+				'default' => 20,
 				'minimum' => 8,
 				'maximum' => 100,
 				'storage' => array( 'postmeta', 'description_font_size' ),
 			),
 			'description_top' => array(
-				'type' => 'int',
+				'type' => 'integer',
 				'default' => 0,
 				'storage' => array( 'postmeta', 'description_top' ),
 			),
 			'description_left' => array(
-				'type' => 'int',
+				'type' => 'integer',
 				'default' => 0,
 				'storage' => array( 'postmeta', 'description_left' ),
 			),
@@ -276,7 +276,7 @@ class Model {
 			} elseif ( 'postmeta' === $field_schema['storage'][0] ) {
 				$meta_key = $field_schema['storage'][1];
 				$value = get_post_meta( $post->ID, $meta_key, true );
-				if ( 'int' === $field_schema['type'] ) {
+				if ( 'integer' === $field_schema['type'] ) {
 					$value = (int) $value;
 				}
 			}
