@@ -13,7 +13,7 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 	 */
 	return api.Section.extend({
 
-		// @todo Export from PHP.
+		// This is overridden by \WP_Scripts::add_inline_script() PHP in Plugin::register_scripts().
 		l10n: {
 			no_title: '{untitled}',
 			title_text_label: '{title}',
@@ -41,9 +41,9 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 
 			// Let the title of the section correspond to the title of the featured item.
 			args.params.title = api( id ).get().title_text || section.l10n.no_title;
-
 			args.params.customizeAction = section.l10n.customize_action;
 
+			// @todo Overkill?
 			section.contentsEmbedded = $.Deferred();
 
 			api.Section.prototype.initialize.call( section, id, args );
@@ -55,6 +55,7 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 		/**
 		 * Allow an active section to be contextually active even when it lacks controls.
 		 *
+		 * @todo Overkill?
 		 * This allows us to dynamically create controls once the section is expanded.
 		 *
 		 * @returns {boolean} Active.
@@ -73,34 +74,18 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 			var section = this, setting, setPriority;
 			setting = api( section.id );
 			setPriority = function( itemData ) {
-				/*
-				 * Abort if item is marked for deletion (as being false) but
-				 * also more importantly abort if the section is expanded. This
-				 * is important because if the priority changes while the section
-				 * is expanded, it can cause unintended blur events when entering
-				 * data into date inputs. Since the priority only makes sense
-				 * when the section is collapsed anyway (as that is when it is seen)
-				 * we can skip setting priority if the section is expanded,
-				 * and instead re-set the priority whenever the section is collapsed.
-				 */
-				if ( false === itemData || section.expanded.get() ) {
-					return;
+				if ( false !== itemData ) {
+					section.priority.set( itemData.position );
 				}
-
-				section.priority.set( itemData.position );
 			};
 			setPriority( setting() );
 			setting.bind( setPriority );
-			section.expanded.bind( function( isExpanded ) {
-				if ( ! isExpanded ) {
-					setPriority( setting() );
-				}
-			} );
 		},
 
 		/**
 		 * Ready.
 		 *
+		 * @todo Deferred-embedding overkill?
 		 * @returns {void}
 		 */
 		ready: function() {
@@ -140,6 +125,7 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 		/**
 		 * Embed the section contents.
 		 *
+		 * @todo Overkill?
 		 * This is called once the section is expanded, when section.contentsEmbedded is resolved.
 		 *
 		 * @return {void}
