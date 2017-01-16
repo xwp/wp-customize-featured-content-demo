@@ -77,7 +77,8 @@ class Plugin {
 		$this->customizer = new Customizer( $this );
 		$this->customizer->add_hooks();
 
-		add_action( 'wp_default_scripts', array( $this, 'register_scripts' ), 20 );
+		$priority = 20; // Due to \Customize_Posts_Plugin::register_scripts() running at priority 11.
+		add_action( 'wp_default_scripts', array( $this, 'register_scripts' ), $priority );
 		add_action( 'wp_default_styles', array( $this, 'register_styles' ), 20 );
 
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_frontend_dependencies' ) );
@@ -98,11 +99,20 @@ class Plugin {
 	 * Register scripts.
 	 *
 	 * @access public
+	 * @see \Customize_Posts_Plugin::register_scripts()
 	 *
 	 * @param \WP_Scripts $wp_scripts Scripts.
 	 */
 	public function register_scripts( \WP_Scripts $wp_scripts ) {
 		$plugin_dir_url = plugin_dir_url( dirname( __FILE__ ) );
+
+		// Register dynamic control if not already registered (via Customize Posts).
+		$handle = 'customize-dynamic-control';
+		if ( ! $wp_scripts->query( $handle, 'registered' ) ) {
+			$src = $plugin_dir_url . 'js/customize-dynamic-control.js';
+			$deps = array( 'customize-base' );
+			$wp_scripts->add( $handle, $src, $deps, $this->version );
+		}
 
 		$handle = 'customize-featured-content-demo-base';
 		$src = $plugin_dir_url . 'js/base.js';

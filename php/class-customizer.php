@@ -41,7 +41,8 @@ class Customizer {
 	 * Add hooks.
 	 */
 	public function add_hooks() {
-		add_action( 'customize_register', array( $this, 'register' ) );
+		$priority = 30; // Due to \WP_Customize_Posts::register_constructs() at priority 20.
+		add_action( 'customize_register', array( $this, 'register' ), $priority );
 		add_filter( 'customize_dynamic_setting_args', array( $this, 'filter_customize_dynamic_setting_args' ), 10, 2 );
 		add_filter( 'customize_dynamic_setting_class', array( $this, 'filter_customize_dynamic_setting_class' ), 10, 3 );
 		add_action( 'customize_register', array( $this, 'add_partials' ), 100 );
@@ -84,12 +85,18 @@ class Customizer {
 	}
 
 	/**
-	 * Register.
+	 * Register panel and control type.
+	 *
+	 * @see WP_Customize_Posts::register_constructs()
 	 *
 	 * @param \WP_Customize_Manager $wp_customize Customize manager instance.
 	 */
 	public function register( \WP_Customize_Manager $wp_customize ) {
 		$this->manager = $wp_customize;
+
+		if ( ! class_exists( '\WP_Customize_Dynamic_Control' ) ) {
+			$this->manager->register_control_type( __NAMESPACE__ . '\WP_Customize_Dynamic_Control' );
+		}
 
 		// @todo Should this register all of the settings or should they be fetched dynamically?
 		$items = $this->plugin->model->get_items();
