@@ -84,15 +84,18 @@ class Model {
 			),
 			'title_text' => array(
 				'type' => 'string',
+				'default' => '',
 				'storage' => array( 'post', 'post_title' ),
 			),
 			'title_color' => array(
 				'type' => 'string',
+				'default' => '',
 				'validate_callback' => array( $this, 'validate_color' ),
 				'storage' => array( 'postmeta', 'title_color' ),
 			),
 			'title_background' => array(
 				'type' => 'string',
+				'default' => '',
 				'validate_callback' => array( $this, 'validate_color' ),
 				'storage' => array( 'postmeta', 'title_background' ),
 			),
@@ -105,23 +108,28 @@ class Model {
 			),
 			'title_top' => array(
 				'type' => 'int',
+				'default' => 0,
 				'storage' => array( 'postmeta', 'title_top' ),
 			),
 			'title_left' => array(
 				'type' => 'int',
+				'default' => 0,
 				'storage' => array( 'postmeta', 'title_left' ),
 			),
 			'description_text' => array(
 				'type' => 'string',
+				'default' => '',
 				'storage' => array( 'post', 'post_excerpt' ),
 			),
 			'description_color' => array(
 				'type' => 'string',
+				'default' => '',
 				'validate_callback' => array( $this, 'validate_color' ),
 				'storage' => array( 'postmeta', 'description_color' ),
 			),
 			'description_background' => array(
 				'type' => 'string',
+				'default' => '',
 				'validate_callback' => array( $this, 'validate_color' ),
 				'storage' => array( 'postmeta', 'description_background' ),
 			),
@@ -134,10 +142,12 @@ class Model {
 			),
 			'description_top' => array(
 				'type' => 'int',
+				'default' => 0,
 				'storage' => array( 'postmeta', 'description_top' ),
 			),
 			'description_left' => array(
 				'type' => 'int',
+				'default' => 0,
 				'storage' => array( 'postmeta', 'description_left' ),
 			),
 		);
@@ -364,6 +374,8 @@ class Model {
 		}
 
 		$post_array = array(
+			'post_type' => Model::SLUG,
+			'post_status' => 'publish',
 			'meta_input' => array(),
 		);
 
@@ -423,6 +435,7 @@ class Model {
 	 */
 	public function get_items() {
 
+		// @todo Use of object cache is probably overkill here and it will hurt more than help if posts/postmeta are not cached.
 		$post_ids = wp_cache_get( static::GET_ITEMS_CACHE_KEY );
 		if ( ! is_array( $post_ids ) ) {
 			$query = new \WP_Query( array(
@@ -438,8 +451,6 @@ class Model {
 
 		/**
 		 * Filters the IDs for all of the current featured items.
-		 *
-		 * This is primarily used by
 		 *
 		 * @param array $post_ids The IDs for the featured_item posts.
 		 */
