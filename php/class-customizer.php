@@ -125,7 +125,7 @@ class Customizer {
 		// Amend the items list with any auto-draft posts created in the customize session.
 		foreach ( $created_posts_setting->post_value( array() ) as $post_id ) {
 			$post = get_post( $post_id );
-			if ( $post && Model::SLUG === $post->post_type ) {
+			if ( $post && Model::POST_TYPE === $post->post_type ) {
 				$item_ids[] = $post->ID;
 			}
 		}

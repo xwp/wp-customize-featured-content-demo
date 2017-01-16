@@ -14,7 +14,7 @@ namespace Customize_Featured_Content_Demo;
  */
 class Model {
 
-	const SLUG = 'featured_item';
+	const POST_TYPE = 'featured_item';
 
 	const GET_ITEMS_CACHE_KEY = 'get_featured_content_items';
 
@@ -231,7 +231,7 @@ class Model {
 	 * Register post type.
 	 */
 	public function register_post_type() {
-		$this->object = register_post_type( static::SLUG, array(
+		$this->object = register_post_type( static::POST_TYPE, array(
 			'labels' => array(
 				'name'          => __( 'Featured Items', 'customize-featured-content-demo' ),
 				'singular_name' => __( 'Featured Item', 'customize-featured-content-demo' ),
@@ -264,7 +264,7 @@ class Model {
 	 */
 	public function get_item( $id ) {
 		$post = get_post( $id );
-		if ( ! $post || static::SLUG !== $post->post_type ) {
+		if ( ! $post || static::POST_TYPE !== $post->post_type ) {
 			return null;
 		}
 
@@ -368,13 +368,13 @@ class Model {
 		$post = null;
 		if ( $id ) {
 			$post = get_post( $id );
-			if ( ! $post || static::SLUG !== $post->post_type ) {
+			if ( ! $post || static::POST_TYPE !== $post->post_type ) {
 				return new \WP_Error( 'invalid_post_id' );
 			}
 		}
 
 		$post_array = array(
-			'post_type' => Model::SLUG,
+			'post_type' => Model::POST_TYPE,
 			'post_status' => 'publish',
 			'meta_input' => array(),
 		);
@@ -418,7 +418,7 @@ class Model {
 			return new \WP_Error( 'missing_id' );
 		}
 		$post = get_post( $id );
-		if ( ! $post || static::SLUG !== $post->post_type ) {
+		if ( ! $post || static::POST_TYPE !== $post->post_type ) {
 			return new \WP_Error( 'invalid_post_id' );
 		}
 		if ( ! wp_delete_post( $post->ID, true ) ) {
@@ -439,7 +439,7 @@ class Model {
 		$post_ids = wp_cache_get( static::GET_ITEMS_CACHE_KEY );
 		if ( ! is_array( $post_ids ) ) {
 			$query = new \WP_Query( array(
-				'post_type' => static::SLUG,
+				'post_type' => static::POST_TYPE,
 				'posts_per_page' => -1,
 			) );
 
