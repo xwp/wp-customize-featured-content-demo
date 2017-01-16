@@ -219,7 +219,7 @@ class Customizer {
 	public function filter_customize_dynamic_setting_class( $setting_class, $setting_id, $setting_args ) {
 		unset( $setting_id );
 		if ( isset( $setting_args['type'] ) && Customize_Setting::TYPE === $setting_args['type'] ) {
-			$setting_class = __NAMESPACE__ . '\\Featured_Item_Customize_Setting';
+			$setting_class = __NAMESPACE__ . '\\Customize_Setting';
 		}
 		return $setting_class;
 	}

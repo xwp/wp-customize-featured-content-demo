@@ -34,11 +34,11 @@ class Customize_Setting extends \WP_Customize_Setting {
 	public $post_id;
 
 	/**
-	 * Value.
+	 * Transport.
 	 *
-	 * @var Featured_Item
+	 * @var string
 	 */
-	public $value;
+	public $transport = 'postMessage';
 
 	/**
 	 * Setting constructor.
