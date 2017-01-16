@@ -174,7 +174,7 @@ class Customize_Setting extends \WP_Customize_Setting {
 		if ( false === $item ) {
 			$r = $this->plugin->model->delete_item( $this->post_id );
 		} else {
-			$r = $this->plugin->model->update_item( $item );
+			$r = $this->plugin->model->update_item( $this->post_id, $item );
 		}
 		return ! is_wp_error( $r );
 	}
