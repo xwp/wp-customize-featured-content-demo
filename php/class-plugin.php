@@ -22,6 +22,20 @@ class Plugin {
 	public $version;
 
 	/**
+	 * Model.
+	 *
+	 * @var Model
+	 */
+	public $model;
+
+	/**
+	 * Customizer.
+	 *
+	 * @var Customizer
+	 */
+	public $customizer;
+
+	/**
 	 * Plugin constructor.
 	 */
 	public function __construct() {
@@ -57,13 +71,16 @@ class Plugin {
 			return;
 		}
 
+		$this->model = new Model( $this );
+		$this->model->add_hooks();
+
+		$this->customizer = new Customizer( $this );
+		$this->customizer->add_hooks();
+
 		add_action( 'wp_default_scripts', array( $this, 'register_scripts' ), 20 );
 		add_action( 'wp_default_styles', array( $this, 'register_styles' ), 20 );
 
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_frontend_dependencies' ) );
-		add_action( 'customize_controls_enqueue_scripts', array( $this, 'enqueue_customize_pane_dependencies' ) );
-
-		add_action( 'customize_controls_print_footer_scripts', array( $this, 'render_customize_templates' ) );
 	}
 
 	/**
@@ -135,42 +152,11 @@ class Plugin {
 	}
 
 	/**
-	 * Enqueue scripts and styles for the Customizer pane (controls).
-	 *
-	 * @access public
-	 * @global \WP_Customize_Manager $wp_customize
-	 */
-	function enqueue_customize_pane_dependencies() {
-		$handle = 'customize-featured-content-demo-pane';
-		wp_enqueue_script( $handle );
-		wp_add_inline_script( $handle, 'wp.customize.featuredContent.pane.initialize();' );
-
-		wp_enqueue_style( $handle );
-	}
-
-	/**
 	 * Enqueue scripts and styles on the frontend.
 	 *
 	 * @access public
 	 */
 	function enqueue_frontend_dependencies() {
-
 		wp_enqueue_style( 'customize-featured-content-demo-frontend' );
-
-		if ( is_customize_preview() ) {
-			$handle = 'customize-featured-content-demo-preview';
-			wp_enqueue_script( $handle );
-			wp_add_inline_script( $handle, 'wp.customize.featuredContent.preview.initialize();' );
-			wp_enqueue_style( $handle );
-		}
-	}
-
-	/**
-	 * Print JS templates.
-	 *
-	 * @see WP_Customize_Widget::render_form_template_scripts()
-	 */
-	function render_customize_templates() {
-		// @todo Might be needed.
 	}
 }

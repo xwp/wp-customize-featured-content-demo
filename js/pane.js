@@ -1,6 +1,6 @@
 /* global wp, console */
 
-wp.customize.featuredContent.pane = (function( api ) { // eslint-disable-line no-unused-vars
+wp.customize.featuredContent.pane = (function( api ) {
 	'use strict';
 
 	// @todo Add integrations methods.

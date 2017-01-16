@@ -32,7 +32,14 @@
 
 namespace Customize_Featured_Content_Demo;
 
-require_once dirname( __FILE__ ) . '/php/class-plugin.php';
+spl_autoload_register( function( $class_name ) {
+	if ( 0 !== strpos( $class_name, __NAMESPACE__ . '\\' ) ) {
+		return;
+	}
+	$class_name = substr( $class_name, strlen( __NAMESPACE__ ) + 1 );
+	$filename = 'class-' . str_replace( array( '\\', '_' ), array( '/', '-' ), strtolower( $class_name ) ) . '.php';
+	require_once dirname( __FILE__ ) . '/php/' . $filename;
+} );
 
 global $customize_featured_content_demo_plugin;
 $customize_featured_content_demo_plugin = new Plugin();

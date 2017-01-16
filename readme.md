@@ -10,6 +10,8 @@ Select items to feature on your site.
 **Stable tag:** 0.1.0  
 **License:** [GPLv2 or later](http://www.gnu.org/licenses/gpl-2.0.html)  
 
+[![Build Status](https://travis-ci.org/xwp/wp-customize-featured-content-demo.svg?branch=master)](https://travis-ci.org/xwp/wp-customize-featured-content-demo) 
+
 ## Description ##
 
 Select items to feature on your site.
