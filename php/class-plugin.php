@@ -119,12 +119,32 @@ class Plugin {
 		$deps = array( 'customize-base' );
 		$wp_scripts->add( $handle, $src, $deps, $this->version );
 
-		$handle = 'customize-featured-content-demo-pane';
-		$src = $plugin_dir_url . 'js/pane.js';
+		$handle = 'customize-featured-item-section';
+		$src = $plugin_dir_url . 'js/featured-item-section.js';
 		$deps = array(
+			'customize-dynamic-control',
 			'customize-featured-content-demo-base',
 			'customize-controls',
 			'customize-object-selector-control',
+		);
+		$wp_scripts->add( $handle, $src, $deps, $this->version );
+		$wp_scripts->add_inline_script( $handle, sprintf(
+			'wp.customize.sectionConstructor.featured_item.prototype.l10n = %s;',
+			wp_json_encode( array(
+				'no_title' => __( '(Untitled)', 'customize-featured-content-demo' ),
+				'title_text_label' => __( 'Title', 'customize-featured-content-demo' ),
+				'description_text_label' => __( 'Description', 'customize-featured-content-demo' ),
+				'position_label' => __( 'Position', 'customize-featured-content-demo' ),
+				'customize_action' => __( 'Customizing featured item:', 'customize-featured-content-demo' ),
+			) )
+		) );
+
+		$handle = 'customize-featured-content-demo-pane';
+		$src = $plugin_dir_url . 'js/pane.js';
+		$deps = array(
+			'customize-featured-item-section',
+			'customize-featured-content-demo-base',
+			'customize-controls',
 		);
 		$wp_scripts->add( $handle, $src, $deps, $this->version );
 
