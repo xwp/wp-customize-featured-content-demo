@@ -260,12 +260,12 @@ class Model {
 	 * Get featured item.
 	 *
 	 * @param int|\WP_Post $id Item.
-	 * @return array|null Item properties or null if the item does not exist.
+	 * @return array|false Item properties or false if the item does not exist (or was deleted).
 	 */
 	public function get_item( $id ) {
 		$post = get_post( $id );
 		if ( ! $post || static::POST_TYPE !== $post->post_type ) {
-			return null;
+			return false;
 		}
 
 		$item = array();
@@ -431,7 +431,7 @@ class Model {
 	/**
 	 * Get items.
 	 *
-	 * @return array Items.
+	 * @return array Items keyed their ID.
 	 */
 	public function get_items() {
 
@@ -444,7 +444,7 @@ class Model {
 			) );
 
 			// Note: fields=>ids is not used because we want to cache the full post objects.
-			$post_ids = wp_list_pluck( $query->posts, 'id' );
+			$post_ids = wp_list_pluck( $query->posts, 'ID' );
 
 			wp_cache_set( static::GET_ITEMS_CACHE_KEY, $post_ids );
 		}
@@ -457,10 +457,13 @@ class Model {
 		$post_ids = apply_filters( 'customize_featured_content_demo_items', $post_ids );
 
 		// Hydrate the post IDs with the items.
-		$items = array_map( array( $this, 'get_item' ), $post_ids );
+		$items = array();
+		foreach ( $post_ids as $post_id ) {
+			$items[ $post_id ] = $this->get_item( $post_id );
+		}
 
 		// Sort the items after the filters have applied.
-		usort( $items, function( $a, $b ) {
+		uasort( $items, function( $a, $b ) {
 			return $a['position'] - $b['position'];
 		} );
 
