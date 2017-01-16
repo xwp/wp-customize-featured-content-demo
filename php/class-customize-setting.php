@@ -59,7 +59,7 @@ class Customize_Setting extends \WP_Customize_Setting {
 		if ( ! isset( $args['plugin'] ) || ! ( $args['plugin'] instanceof Plugin ) ) {
 			throw new \Exception( 'Missing plugin arg.' );
 		}
-		$args['default'] = $this->plugin->model->get_default_item();
+		$args['default'] = $args['plugin']->model->get_default_item();
 		$args['post_id'] = intval( $matches['post_id'] );
 		$args['type'] = static::TYPE;
 		parent::__construct( $manager, $id, $args );
@@ -102,7 +102,7 @@ class Customize_Setting extends \WP_Customize_Setting {
 			return false;
 		}
 		$this->is_previewed = true;
-		add_filter( 'customize_featured_content_demo_item', array( $this, 'filter_previewed_item' ) );
+		add_filter( 'customize_featured_content_demo_item', array( $this, 'filter_previewed_item' ), 10, 2 );
 		return true;
 	}
 

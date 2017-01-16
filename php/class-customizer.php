@@ -93,8 +93,8 @@ class Customizer {
 
 		// @todo Should this register all of the settings or should they be fetched dynamically?
 		$items = $this->plugin->model->get_items();
-		foreach ( $items as $item ) {
-			$setting = new Customize_Setting( $wp_customize, $item->ID, array(
+		foreach ( $items as $id => $item ) {
+			$setting = new Customize_Setting( $wp_customize, $id, array(
 				'plugin' => $this->plugin,
 			) );
 			$wp_customize->add_setting( $setting );
