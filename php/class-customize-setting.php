@@ -95,6 +95,8 @@ class Customize_Setting extends \WP_Customize_Setting {
 	/**
 	 * Add filters to supply the setting's value when accessed.
 	 *
+	 * @see Model::get_item()
+	 *
 	 * @return bool False when preview short-circuits due no change needing to be previewed.
 	 */
 	public function preview() {

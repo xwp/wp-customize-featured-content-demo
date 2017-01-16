@@ -116,8 +116,10 @@ class Customizer {
 	/**
 	 * Filter featured items list to inject featured_item auto-draft post IDs.
 	 *
+	 * @see Model::get_items()
+	 *
 	 * @param array $item_ids Items.
-	 * @returns array Item IDs.
+	 * @return array Item IDs.
 	 */
 	public function filter_featured_items( $item_ids ) {
 		$created_posts_setting = $this->manager->get_setting( 'nav_menus_created_posts' );
@@ -181,7 +183,7 @@ class Customizer {
 	 *
 	 * @param false|array $setting_args The arguments to the WP_Customize_Setting constructor.
 	 * @param string      $setting_id   ID for dynamic setting.
-	 * @returns array|false Setting args or `false` if the `$setting_id` was not recognized.
+	 * @return array|false Setting args or `false` if the `$setting_id` was not recognized.
 	 */
 	public function filter_customize_dynamic_setting_args( $setting_args, $setting_id ) {
 		if ( preg_match( Customize_Setting::ID_PATTERN, $setting_id ) ) {
