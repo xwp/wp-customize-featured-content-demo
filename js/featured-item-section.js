@@ -240,7 +240,10 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 						'default': setting.id
 					},
 					field_type: 'number',
-					setting_property: 'position'
+					setting_property: 'position',
+					input_attrs: {
+						min: 0
+					}
 				}
 			} );
 

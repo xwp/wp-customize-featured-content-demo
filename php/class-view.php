@@ -70,11 +70,11 @@ class View {
 			<?php else : ?>
 				<a class="entry-title">
 			<?php endif; ?>
-				<?php echo esc_html( $item['title_text'] ); ?>
+				<?php echo wptexturize( esc_html( $item['title_text'] ) ); ?>
 			</a>
 			<?php if ( $item['description_text'] ) : ?>
 				<div class="entry-summary">
-					<?php echo wpautop( esc_html( $item['description_text'] ) ) ?>
+					<?php echo wpautop( wptexturize( esc_html( $item['description_text'] ) ) ); ?>
 				</div>
 			<?php endif; ?>
 		</li>
