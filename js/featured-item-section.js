@@ -105,18 +105,6 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 		},
 
 		/**
-		 * Set up the post field controls.
-		 *
-		 * @returns {void}
-		 */
-		setupControls: function() {
-			var section = this;
-			section.addTitleControl();
-			section.addPositionControl();
-			section.addExcerptControl();
-		},
-
-		/**
 		 * Add post title control.
 		 *
 		 * @returns {wp.customize.Control} Added control.
