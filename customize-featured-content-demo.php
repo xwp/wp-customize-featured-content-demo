@@ -44,3 +44,13 @@ spl_autoload_register( function( $class_name ) {
 global $customize_featured_content_demo_plugin;
 $customize_featured_content_demo_plugin = new Plugin();
 add_action( 'plugins_loaded', array( $customize_featured_content_demo_plugin, 'init' ), 100 );
+
+/**
+ * Render items.
+ *
+ * @see \Customize_Featured_Content_Demo\Model::get_items()
+ */
+function render_items() {
+	global $customize_featured_content_demo_plugin;
+	$customize_featured_content_demo_plugin->view->render_items();
+}

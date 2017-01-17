@@ -29,6 +29,13 @@ class Plugin {
 	public $model;
 
 	/**
+	 * View.
+	 *
+	 * @var View
+	 */
+	public $view;
+
+	/**
 	 * Customizer.
 	 *
 	 * @var Customizer
@@ -73,6 +80,8 @@ class Plugin {
 
 		$this->model = new Model( $this );
 		$this->model->add_hooks();
+
+		$this->view = new View( $this );
 
 		$this->customizer = new Customizer( $this );
 		$this->customizer->add_hooks();

@@ -166,22 +166,31 @@ class Customizer {
 	 * in response to syncing of settings to the preview.
 	 */
 	function add_partials() {
-		$partial_settings = array();
-
 		foreach ( $this->manager->settings() as $setting ) {
-			if ( $setting instanceof Customize_Setting ) {
-				$partial_id = sprintf( sprintf( '%s[%d]', Customize_Partial::TYPE, $setting->post_id ) );
-				$partial_settings[ $partial_id ][] = $setting;
+			if ( ! ( $setting instanceof Customize_Setting ) ) {
+				continue;
 			}
-		}
-
-		foreach ( $partial_settings as $partial_id => $settings ) {
+			$partial_id = $setting->id;
 			$partial_args = array(
 				'plugin' => $this->plugin,
-				'settings' => wp_list_pluck( $settings, 'id' ), // The JS can make this unnecessary by overriding isRelatedSetting.
+				'selector' => sprintf( '.featured-content-item-%d', $setting->post_id ),
+				'settings' => array( $setting->id ),
+				'container_inclusive' => true,
+				'render_callback' => array( $this, 'render_item_partial' ),
 			);
-			$partial = new Customize_Partial( $this->manager->selective_refresh, $partial_id, $partial_args );
-			$this->manager->selective_refresh->add_partial( $partial );
+			$this->manager->selective_refresh->add_partial( $partial_id, $partial_args );
+		}
+	}
+
+	/**
+	 * Render item partial.
+	 *
+	 * @param \WP_Customize_Partial $partial Partial.
+	 */
+	public function render_item_partial( \WP_Customize_Partial $partial ) {
+		$setting = $partial->component->manager->get_setting( $partial->primary_setting );
+		if ( $setting instanceof Customize_Setting ) {
+			$this->plugin->view->render_item( $setting->post_id );
 		}
 	}
 

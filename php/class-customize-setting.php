@@ -10,6 +10,8 @@ namespace Customize_Featured_Content_Demo;
 /**
  * Class Customize_Setting
  *
+ * @todo Rename this to Item_Customize_Setting for clarity.
+ *
  * @package Customize_Featured_Content_Demo
  */
 class Customize_Setting extends \WP_Customize_Setting {
