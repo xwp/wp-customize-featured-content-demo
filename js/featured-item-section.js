@@ -43,26 +43,10 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 			args.params.title = api( id ).get().title_text || section.l10n.no_title;
 			args.params.customizeAction = section.l10n.customize_action;
 
-			// @todo Overkill?
-			section.contentsEmbedded = $.Deferred();
-
 			api.Section.prototype.initialize.call( section, id, args );
 
 			// Let the section priority correspond to the position of the featured item.
 			section.syncPositionAsPriority();
-		},
-
-		/**
-		 * Allow an active section to be contextually active even when it lacks controls.
-		 *
-		 * @todo Overkill?
-		 * This allows us to dynamically create controls once the section is expanded.
-		 *
-		 * @returns {boolean} Active.
-		 */
-		isContextuallyActive: function() {
-			var section = this;
-			return section.active();
 		},
 
 		/**
@@ -85,54 +69,16 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 		/**
 		 * Ready.
 		 *
-		 * @todo Deferred-embedding overkill?
 		 * @returns {void}
 		 */
 		ready: function() {
-			var section = this, shouldExpandNow = section.expanded();
+			var section = this;
+			api.Section.prototype.ready.call( section );
 
 			section.setupTitleUpdating();
-
-			section.contentsEmbedded.done( function() {
-				section.embedSectionContents();
-			} );
-
-			api.Section.prototype.ready.call( section );
-
-			if ( api.settings.autofocus.section === section.id ) {
-				shouldExpandNow = true;
-			}
-			if ( api.settings.autofocus.control && 0 === api.settings.autofocus.control.indexOf( section.id ) ) {
-				shouldExpandNow = true;
-			}
-
-			// Embed now if it is already expanded or if the section or a control
-			function handleExpand( expanded ) {
-				if ( expanded ) {
-					section.contentsEmbedded.resolve();
-					section.expanded.unbind( handleExpand );
-				}
-			}
-			if ( shouldExpandNow ) {
-				section.contentsEmbedded.resolve();
-			} else {
-				section.expanded.bind( handleExpand );
-			}
-
-			api.Section.prototype.ready.call( section );
-		},
-
-		/**
-		 * Embed the section contents.
-		 *
-		 * @todo Overkill?
-		 * This is called once the section is expanded, when section.contentsEmbedded is resolved.
-		 *
-		 * @return {void}
-		 */
-		embedSectionContents: function embedSectionContents() {
-			var section = this;
-			section.setupControls();
+			section.addTitleControl();
+			section.addPositionControl();
+			section.addExcerptControl();
 		},
 
 		/**
