@@ -77,7 +77,6 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 
 			section.setupTitleUpdating();
 			section.addTitleControl();
-			section.addPositionControl();
 			section.addExcerptControl();
 		},
 
@@ -161,35 +160,6 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 					},
 					field_type: 'textarea',
 					setting_property: 'description_text'
-				}
-			} );
-
-			api.control.add( control.id, control );
-
-			return control;
-		},
-
-		/**
-		 * Add order control.
-		 *
-		 * @returns {wp.customize.Control} Added control.
-		 */
-		addPositionControl: function addPositionControl() {
-			var section = this, control, setting = api( section.id );
-			control = new api.controlConstructor.dynamic( section.id + '[position]', {
-				params: {
-					section: section.id,
-					priority: 80,
-					label: section.l10n.position_label,
-					active: true,
-					settings: {
-						'default': setting.id
-					},
-					field_type: 'number',
-					setting_property: 'position',
-					input_attrs: {
-						min: 0
-					}
 				}
 			} );
 

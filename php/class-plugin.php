@@ -154,6 +154,7 @@ class Plugin {
 			'customize-featured-item-section',
 			'customize-featured-content-demo-base',
 			'customize-controls',
+			'jquery-ui-sortable',
 		);
 		$wp_scripts->add( $handle, $src, $deps, $this->version );
 
