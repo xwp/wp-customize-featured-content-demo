@@ -64,16 +64,16 @@ class View {
 			$item['description_text'] = $related_post->post_excerpt;
 		}
 		?>
-		<li class="<?php echo esc_attr( "featured-content-item-$id" ); ?>">
+		<li class="<?php echo esc_attr( "featured-content-item-$id" ); ?>" data-position="<?php echo esc_attr( $item['position'] ); ?>">
 			<?php if ( $item['url'] ) : ?>
-				<a class="entry-title" href="<?php echo esc_url( $item['url'] ) ?>">
+				<a class="title" href="<?php echo esc_url( $item['url'] ) ?>">
 			<?php else : ?>
-				<a class="entry-title">
+				<a class="title">
 			<?php endif; ?>
 				<?php echo wptexturize( esc_html( $item['title_text'] ) ); ?>
 			</a>
 			<?php if ( $item['description_text'] ) : ?>
-				<div class="entry-summary">
+				<div class="description">
 					<?php echo wpautop( wptexturize( esc_html( $item['description_text'] ) ) ); ?>
 				</div>
 			<?php endif; ?>

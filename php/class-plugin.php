@@ -157,10 +157,18 @@ class Plugin {
 		);
 		$wp_scripts->add( $handle, $src, $deps, $this->version );
 
+		$handle = 'customize-featured-item-partial';
+		$src = $plugin_dir_url . 'js/featured-item-partial.js';
+		$deps = array(
+			'customize-selective-refresh',
+		);
+		$wp_scripts->add( $handle, $src, $deps, $this->version );
+
 		$handle = 'customize-featured-content-demo-preview';
 		$src = $plugin_dir_url . 'js/preview.js';
 		$deps = array(
 			'customize-featured-content-demo-base',
+			'customize-featured-item-partial',
 			'customize-preview',
 		);
 		$wp_scripts->add( $handle, $src, $deps, $this->version );

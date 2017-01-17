@@ -172,6 +172,7 @@ class Customizer {
 			}
 			$partial_id = $setting->id;
 			$partial_args = array(
+				'type' => 'featured_item',
 				'plugin' => $this->plugin,
 				'selector' => sprintf( '.featured-content-item-%d', $setting->post_id ),
 				'settings' => array( $setting->id ),
