@@ -152,6 +152,16 @@ class Plugin {
 			'_.extend( wp.customize.sectionConstructor.featured_item.prototype.l10n, %s );',
 			wp_json_encode( array(
 				'no_title' => __( '(Untitled)', 'customize-featured-content-demo' ),
+				'featured_image_id_label' => __( 'Featured Image Override', 'customize-featured-content-demo' ),
+				'featured_image_button_labels' => array(
+					'select'       => __( 'Select Image', 'customize-featured-content-demo' ),
+					'change'       => __( 'Change Image', 'customize-featured-content-demo' ),
+					'remove'       => __( 'Remove', 'customize-featured-content-demo' ),
+					'default'      => __( 'Default', 'customize-featured-content-demo' ),
+					'placeholder'  => __( 'No image selected', 'customize-featured-content-demo' ),
+					'frame_title'  => __( 'Select Image', 'customize-featured-content-demo' ),
+					'frame_button' => __( 'Choose Image', 'customize-featured-content-demo' ),
+				),
 				'related_post_id_label' => __( 'Related item', 'customize-featured-content-demo' ),
 				'related_post_id_placeholder' => __( 'Search items', 'customize-featured-content-demo' ),
 				'title_text_label' => __( 'Title', 'customize-featured-content-demo' ),

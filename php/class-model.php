@@ -226,7 +226,7 @@ class Model {
 		if ( 'featured_image_id' === $property ) {
 			if ( 'attachment' !== $post->post_type ) {
 				return new \WP_Error( 'invalid_attachment_post' );
-			} elseif ( preg_match( '#^image/#', get_post_mime_type( $post ) ) ) {
+			} elseif ( ! preg_match( '#^image/#', get_post_mime_type( $post ) ) ) {
 				return new \WP_Error( 'invalid_image_attachment' );
 			}
 		}

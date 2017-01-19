@@ -16,6 +16,18 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 		// This is overridden by \WP_Scripts::add_inline_script() PHP in Plugin::register_scripts().
 		l10n: {
 			no_title: '{missing_text:untitled}',
+			featured_image_id_label: '{missing_text:featured_image_id_label}',
+
+			featured_image_button_labels: {
+				change: '{missing_text:featured_image_button_labels.change}',
+				'default': '{missing_text:featured_image_button_labels.default}',
+				placeholder: '{missing_text:featured_image_button_labels.placeholder}',
+				remove: '{missing_text:featured_image_button_labels.remove}',
+				select: '{missing_text:featured_image_button_labels.select}',
+				frame_button: '{missing_text:featured_image_button_labels.frame_button}',
+				frame_title: '{missing_text:featured_image_button_labels.frame_title}'
+			},
+
 			related_post_id_label: '{missing_text:related_post_id_label}',
 			related_post_id_placeholder: '{missing_text:related_post_id_placeholder}',
 			title_text_label: '{missing_text:title}',
@@ -27,6 +39,7 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 		// Make it easy to change the ordering of controls with a centralized priority lookup.
 		controlPriorities: {
 			related_post_id: 10,
+			featured_image_id: 15,
 			title_text: 20,
 			description_text: 30
 		},
@@ -64,6 +77,7 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 			api.Section.prototype.ready.call( section );
 
 			section.syncTitle();
+			section.addFeaturedImageControl();
 			section.addRelatedPostControl();
 			section.syncPositionAsPriority();
 			section.addTitleControl();
@@ -142,6 +156,61 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 					}
 				}
 			} );
+
+			api.control.add( control.id, control );
+
+			return control;
+		},
+
+		/**
+		 * Add title text control.
+		 *
+		 * @returns {wp.customize.Control} Added control.
+		 */
+		addFeaturedImageControl: function addFeaturedImageControl() {
+			var section = this, control, customizeId;
+			customizeId = section.params.settingIdBase + '[featured_image_id]';
+
+			control = new api.MediaControl( customizeId, {
+				params: {
+					section: section.id,
+					priority: section.controlPriorities.featured_image_id,
+					label: section.l10n.featured_image_id_label,
+					button_labels: section.l10n.featured_image_button_labels,
+					active: true,
+					canUpload: true,
+					content: '<li class="customize-control customize-control-media"></li>',
+					description: '',
+					mime_type: 'image',
+					settings: {
+						'default': customizeId
+					},
+					type: 'media'
+				}
+			} );
+
+			// @todo The wp.customize.MediaControl should do this in core.
+			control.initFrame = (function( originalInitFrame ) {
+
+				/**
+				 * Initialize the media frame and preselect.
+				 *
+				 * @return {void}
+				 */
+				return function initFrameAndSetInitialSelection() {
+					originalInitFrame.call( this );
+					control.frame.on( 'open', function() {
+						var selection = control.frame.state().get( 'selection' );
+						if ( control.params.attachment && control.params.attachment.id ) {
+
+							// @todo This should also pre-check the images in the media library grid.
+							selection.reset( [ control.params.attachment ] );
+						} else {
+							selection.reset( [] );
+						}
+					} );
+				};
+			})( control.initFrame );
 
 			api.control.add( control.id, control );
 
