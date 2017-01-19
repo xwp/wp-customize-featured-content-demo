@@ -15,17 +15,20 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 
 		// This is overridden by \WP_Scripts::add_inline_script() PHP in Plugin::register_scripts().
 		l10n: {
-			no_title: '{untitled}',
-			title_text_label: '{title}',
-			description_text_label: '{description}',
-			position_label: '{position}',
-			customize_action: '{customize_action}'
+			no_title: '{missing_text:untitled}',
+			related_post_id_label: '{missing_text:related_post_id_label}',
+			related_post_id_placeholder: '{missing_text:related_post_id_placeholder}',
+			title_text_label: '{missing_text:title}',
+			description_text_label: '{missing_text:description}',
+			position_label: '{missing_text:position}',
+			customize_action: '{missing_text:customize_action}'
 		},
 
 		// Make it easy to change the ordering of controls with a centralized priority lookup.
 		controlPriorities: {
-			title_text: 10,
-			description_text: 20
+			related_post_id: 10,
+			title_text: 20,
+			description_text: 30
 		},
 
 		/**
@@ -61,6 +64,7 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 			api.Section.prototype.ready.call( section );
 
 			section.syncTitle();
+			section.addRelatedPostControl();
 			section.syncPositionAsPriority();
 			section.addTitleControl();
 			section.addExcerptControl();
@@ -108,7 +112,44 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 		},
 
 		/**
-		 * Add post title control.
+		 * Add object selector control.
+		 *
+		 * @returns {wp.customize.Control} Added control.
+		 */
+		addRelatedPostControl: function addRelatedPostControl() {
+			var section = this, control, customizeId;
+			customizeId = section.params.settingIdBase + '[related_post_id]'; // Both the the ID for the control and the setting.
+
+			control = new api.controlConstructor.object_selector( customizeId, {
+				params: {
+					section: section.id,
+					priority: section.controlPriorities.related_post_id,
+					label: section.l10n.related_post_id_label,
+					active: true,
+					settings: {
+						'default': customizeId
+					},
+					field_type: 'select',
+					post_query_vars: {
+						post_type: [ 'post', 'page' ],
+						post_status: 'publish'
+					},
+					show_add_buttons: false,
+					select2_options: {
+						multiple: false,
+						allowClear: true,
+						placeholder: section.l10n.related_post_id_placeholder
+					}
+				}
+			} );
+
+			api.control.add( control.id, control );
+
+			return control;
+		},
+
+		/**
+		 * Add title text control.
 		 *
 		 * @returns {wp.customize.Control} Added control.
 		 */
@@ -137,7 +178,7 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 		},
 
 		/**
-		 * Add post excerpt control.
+		 * Add description text control.
 		 *
 		 * @returns {wp.customize.Control} Added control.
 		 */

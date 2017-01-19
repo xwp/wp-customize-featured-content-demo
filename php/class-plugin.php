@@ -149,9 +149,11 @@ class Plugin {
 		);
 		$wp_scripts->add( $handle, $src, $deps, $this->version );
 		$wp_scripts->add_inline_script( $handle, sprintf(
-			'wp.customize.sectionConstructor.featured_item.prototype.l10n = %s;',
+			'_.extend( wp.customize.sectionConstructor.featured_item.prototype.l10n, %s );',
 			wp_json_encode( array(
 				'no_title' => __( '(Untitled)', 'customize-featured-content-demo' ),
+				'related_post_id_label' => __( 'Related item', 'customize-featured-content-demo' ),
+				'related_post_id_placeholder' => __( 'Search items', 'customize-featured-content-demo' ),
 				'title_text_label' => __( 'Title', 'customize-featured-content-demo' ),
 				'description_text_label' => __( 'Description', 'customize-featured-content-demo' ),
 				'position_label' => __( 'Position', 'customize-featured-content-demo' ),
