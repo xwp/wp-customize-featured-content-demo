@@ -91,6 +91,7 @@ class Model {
 			'title_text' => array(
 				'type' => 'string',
 				'default' => '',
+				'sanitize_callback' => array( $this, 'sanitize_title_text' ),
 				'storage' => array( 'post', 'post_title' ),
 			),
 			'title_color' => array(
@@ -160,6 +161,24 @@ class Model {
 	}
 
 	/**
+	 * Validate and sanitize text.
+	 *
+	 * @param string $value  The title text value.
+	 * @param array  $args   Schema array to use for validation.
+	 * @return string|\WP_Error
+	 */
+	public function sanitize_title_text( $value, $args ) {
+		$value = rest_sanitize_value_from_schema( $value, $args );
+
+		if ( preg_match( '#</?\w*.?>#s', $value ) ) {
+			return new \WP_Error( 'invalid_title_markup', __( 'Markup is not allowed.', 'customize-featured-content-demo' ) );
+		}
+
+		$value = sanitize_text_field( $value );
+		return $value;
+	}
+
+	/**
 	 * Validate color.
 	 *
 	 * @param mixed  $value    The value to validate.
@@ -175,7 +194,7 @@ class Model {
 		if ( ! empty( $value ) ) {
 			$value = sanitize_hex_color( $value );
 			if ( empty( $value ) ) {
-				return new \WP_Error( 'invalid_hex_color' );
+				return new \WP_Error( 'invalid_hex_color', __( 'Invalid HEX color.', 'customize-featured-content-demo' ) );
 			}
 		}
 		return true;
@@ -197,7 +216,7 @@ class Model {
 		if ( ! empty( $value ) ) {
 			$value = esc_url_raw( $value, array( 'http', 'https', 'mailto' ) );
 			if ( empty( $value ) ) {
-				return new \WP_Error( 'invalid_url' );
+				return new \WP_Error( 'invalid_url', __( 'Invalid URL.', 'customize-featured-content-demo' ) );
 			}
 		}
 		return $value;
@@ -221,13 +240,13 @@ class Model {
 		}
 		$post = get_post( $value );
 		if ( ! $post ) {
-			return new \WP_Error( 'invalid_post_id' );
+			return new \WP_Error( 'invalid_post_id', __( 'Invalid post.', 'customize-featured-content-demo' ) );
 		}
 		if ( 'featured_image_id' === $property ) {
 			if ( 'attachment' !== $post->post_type ) {
-				return new \WP_Error( 'invalid_attachment_post' );
+				return new \WP_Error( 'invalid_attachment_post', __( 'Invalid attachment.', 'customize-featured-content-demo' ) );
 			} elseif ( ! preg_match( '#^image/#', get_post_mime_type( $post ) ) ) {
-				return new \WP_Error( 'invalid_image_attachment' );
+				return new \WP_Error( 'invalid_image_attachment', __( 'Invalid image attachment.', 'customize-featured-content-demo' ) );
 			}
 		}
 		return true;
@@ -312,7 +331,7 @@ class Model {
 	public function validate_item_property( $property_name, $property_value ) {
 		$item_schema = $this->get_item_schema_properties();
 		if ( ! isset( $item_schema[ $property_name ] ) ) {
-			return new \WP_Error( 'unrecognized_properties' );
+			return new \WP_Error( 'unrecognized_property', __( 'Unrecognized property.', 'customize-featured-content-demo' ) );
 		}
 		$field_schema = $item_schema[ $property_name ];
 		$validate_callback = 'rest_validate_value_from_schema';
@@ -368,7 +387,7 @@ class Model {
 		if ( $id ) {
 			$post = get_post( $id );
 			if ( ! $post || static::POST_TYPE !== $post->post_type ) {
-				return new \WP_Error( 'invalid_post_id' );
+				return new \WP_Error( 'invalid_post_id', __( 'Invalid post.', 'customize-featured-content-demo' ) );
 			}
 		}
 
@@ -413,14 +432,14 @@ class Model {
 	 */
 	public function delete_item( $id ) {
 		if ( ! $id ) {
-			return new \WP_Error( 'missing_id' );
+			return new \WP_Error( 'missing_id', __( 'Missing ID.', 'customize-featured-content-demo' ) );
 		}
 		$post = get_post( $id );
 		if ( ! $post || static::POST_TYPE !== $post->post_type ) {
-			return new \WP_Error( 'invalid_post_id' );
+			return new \WP_Error( 'invalid_post_id', __( 'Invalid post ID.', 'customize-featured-content-demo' ) );
 		}
 		if ( ! wp_delete_post( $post->ID, true ) ) {
-			return new \WP_Error( 'delete_failure' );
+			return new \WP_Error( 'delete_failure', __( 'Failed to delete.', 'customize-featured-content-demo' ) );
 		}
 		wp_cache_delete( static::GET_ITEMS_CACHE_KEY );
 		return true;
