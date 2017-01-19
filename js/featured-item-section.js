@@ -66,7 +66,8 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 				{
 					title: section.l10n.no_title,
 					customizeAction: section.l10n.customize_action,
-					settingIdBase: id
+					settingIdBase: id,
+					type: 'featured_item' // So that the list item will include the control-section-featured_item class.
 				},
 				args.params || {}
 			);

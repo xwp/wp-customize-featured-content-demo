@@ -1,0 +1,10 @@
+
+.control-section-featured_item > .accordion-section-title:before {
+	font-family: Dashicons;
+	content: "\f214";
+	cursor: move;
+	padding-right: 1ex;
+	vertical-align: middle;
+	font-weight: normal;
+	color: #ccc
+}
