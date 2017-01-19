@@ -1,0 +1,22 @@
+.featured-content-items {
+	margin-top: 1em;
+	margin-bottom: 1em;
+	display: flex;
+}
+.featured-content-item {
+	margin-left: 1em;
+	margin-right: 1em;
+	width: 150px;
+}
+.featured-content-item .title {
+	font-weight: bold;
+	display: block;
+	margin-bottom: 0.5em;
+}
+.featured-content-item img {
+	display: block;
+	margin-bottom: 0.5em;
+}
+.featured-content-item .description {
+	font-size: smaller;
+}
