@@ -91,7 +91,7 @@ class Model {
 			'title_text' => array(
 				'type' => 'string',
 				'default' => '',
-				'sanitize_callback' => array( $this, 'sanitize_title_text' ),
+				'sanitize_callback' => array( $this, 'sanitize_text' ),
 				'storage' => array( 'post', 'post_title' ),
 			),
 			'title_color' => array(
@@ -126,6 +126,7 @@ class Model {
 			'description_text' => array(
 				'type' => 'string',
 				'default' => '',
+				'sanitize_callback' => array( $this, 'sanitize_text' ),
 				'storage' => array( 'post', 'post_excerpt' ),
 			),
 			'description_color' => array(
@@ -167,7 +168,7 @@ class Model {
 	 * @param array  $args   Schema array to use for validation.
 	 * @return string|\WP_Error
 	 */
-	public function sanitize_title_text( $value, $args ) {
+	public function sanitize_text( $value, $args ) {
 		$value = rest_sanitize_value_from_schema( $value, $args );
 
 		if ( preg_match( '#</?\w*.?>#s', $value ) ) {
