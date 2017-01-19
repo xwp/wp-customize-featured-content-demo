@@ -27,6 +27,7 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 				frame_title: '{missing_text:featured_image_button_labels.frame_title}'
 			},
 			related_post_id_label: '{missing_text:related_post_id_label}',
+			url_label: '{missing_text:url_label}',
 			related_post_id_placeholder: '{missing_text:related_post_id_placeholder}',
 			title_text_label: '{missing_text:title}',
 			description_text_label: '{missing_text:description}',
@@ -35,12 +36,20 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 		},
 
 		// Make it easy to change the ordering of controls with a centralized priority lookup.
-		controlPriorities: {
-			related_post_id: 10,
-			featured_image_id: 15,
-			title_text: 20,
-			description_text: 30
-		},
+		controlPriorities: (function() {
+			var order, orderMapping = {};
+			order = [
+				'related_post_id',
+				'featured_image_id',
+				'url',
+				'title_text',
+				'description_text'
+			];
+			_.each( order, function( property, priority ) {
+				orderMapping[ property ] = priority;
+			} );
+			return orderMapping;
+		})(),
 
 		/**
 		 * Initialize.
@@ -80,6 +89,7 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 			section.syncPositionAsPriority();
 			section.addTitleControl();
 			section.addExcerptControl();
+			section.addURLControl();
 		},
 
 		/**
@@ -262,6 +272,35 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 						'default': customizeId
 					},
 					field_type: 'textarea',
+					input_attrs: {
+						'data-customize-setting-link': customizeId
+					}
+				}
+			} );
+
+			api.control.add( control.id, control );
+
+			return control;
+		},
+
+		/**
+		 * Add URL control.
+		 *
+		 * @returns {wp.customize.Control} Added control.
+		 */
+		addURLControl: function addURLControl() {
+			var section = this, control, customizeId;
+			customizeId = section.params.settingIdBase + '[url]'; // Both the the ID for the control and the setting.
+			control = new api.controlConstructor.dynamic( customizeId, {
+				params: {
+					section: section.id,
+					priority: section.controlPriorities.url,
+					label: section.l10n.url_label,
+					active: true,
+					settings: {
+						'default': customizeId
+					},
+					field_type: 'url',
 					input_attrs: {
 						'data-customize-setting-link': customizeId
 					}
