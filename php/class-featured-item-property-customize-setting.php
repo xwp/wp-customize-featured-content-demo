@@ -14,10 +14,10 @@ namespace Customize_Featured_Content_Demo;
  */
 class Featured_Item_Property_Customize_Setting extends \WP_Customize_Setting {
 
-	const TYPE = 'featured_item';
+	const TYPE = 'featured_item_property';
 
 	// Note how the id_base uses the type as its namespace.
-	const ID_PATTERN = '/^featured_item\[(?P<post_id>\d+)\]$/';
+	const ID_PATTERN = '/^featured_item\[(?P<post_id>\d+)\]\[(?P<property>\w+)\]$/Ds';
 
 	/**
 	 * Plugin instance.
@@ -34,6 +34,13 @@ class Featured_Item_Property_Customize_Setting extends \WP_Customize_Setting {
 	public $post_id;
 
 	/**
+	 * Property for the featured_item.
+	 *
+	 * @var string
+	 */
+	public $property;
+
+	/**
 	 * Transport.
 	 *
 	 * @var string
@@ -43,36 +50,39 @@ class Featured_Item_Property_Customize_Setting extends \WP_Customize_Setting {
 	/**
 	 * Setting constructor.
 	 *
-	 * @throws \Exception If the ID is invalid or if the plugin arg was absent.
+	 * @throws \Exception If if invalid args provided.
 	 *
 	 * @param \WP_Customize_Manager $manager Customize manager.
-	 * @param string|int            $id      Setting ID or featured_item post ID.
 	 * @param array                 $args    Setting arguments.
 	 */
-	public function __construct( $manager, $id, $args ) {
-		if ( is_numeric( $id ) ) {
-			$id = static::get_setting_id( $id );
-		}
-		if ( ! preg_match( self::ID_PATTERN, $id, $matches ) ) {
-			throw new \Exception( "Illegal widget setting ID: $id" );
-		}
+	public function __construct( $manager, $args ) {
 		if ( ! isset( $args['plugin'] ) || ! ( $args['plugin'] instanceof Plugin ) ) {
 			throw new \Exception( 'Missing plugin arg.' );
 		}
-		$args['default'] = $args['plugin']->model->get_default_item();
-		$args['post_id'] = intval( $matches['post_id'] );
+		$default_item = $args['plugin']->model->get_default_item();
+		if ( empty( $args['post_id'] ) ) {
+			throw new \Exception( 'Missing post_id arg' );
+		}
+		if ( empty( $args['property'] ) ) {
+			throw new \Exception( 'Missing property arg' );
+		}
+		if ( isset( $default_item[ $args['property'] ]['default'] ) ) {
+			$args['default'] = $default_item[ $args['property'] ]['default'];
+		}
 		$args['type'] = static::TYPE;
-		parent::__construct( $manager, $id, $args );
+		$setting_id = static::get_setting_id( $args['post_id'], $args['property'] );
+		parent::__construct( $manager, $setting_id, $args );
 	}
 
 	/**
 	 * Get setting ID.
 	 *
-	 * @param int $post_id Featured item post ID.
+	 * @param int    $post_id       Featured item post ID.
+	 * @param string $property_name Featured item property name.
 	 * @return string Setting ID.
 	 */
-	static public function get_setting_id( $post_id ) {
-		return sprintf( '%s[%d]', Featured_Item_Property_Customize_Setting::TYPE, $post_id );
+	static public function get_setting_id( $post_id, $property_name ) {
+		return sprintf( '%s[%d][%s]', Featured_Item_Property_Customize_Setting::TYPE, $post_id, $property_name );
 	}
 
 	/**
@@ -81,8 +91,10 @@ class Featured_Item_Property_Customize_Setting extends \WP_Customize_Setting {
 	 * @return array The featured item.
 	 */
 	public function value() {
-		$value = $this->plugin->model->get_item( $this->post_id );
-		if ( null === $value ) {
+		$item = $this->plugin->model->get_item( $this->post_id );
+		if ( isset( $item[ $this->property ] ) ) {
+			$value = $item[ $this->property ];
+		} else {
 			$value = $this->default;
 		}
 
@@ -117,65 +129,61 @@ class Featured_Item_Property_Customize_Setting extends \WP_Customize_Setting {
 	 */
 	public function filter_previewed_item( $item, $id ) {
 		if ( $this->post_id === $id ) {
-			$item = $this->post_value( $item );
+			$property_value = $this->post_value();
+			if ( null !== $property_value ) {
+				$item[ $this->property ] = $property_value;
+			}
 		}
 		return $item;
 	}
 
 	/**
-	 * Validate an item's properties.
+	 * Validate an item's property value.
 	 *
-	 * @param array|false $item Item properties to validate, or false if marked for deletion.
+	 * @param mixed $value Item property value to validate.
 	 * @return true|\WP_Error True if the input was validated, otherwise WP_Error.
 	 */
-	public function validate( $item ) {
-
-		// If not false then isn't deletion case.
-		if ( false !== $item ) {
-			$validity = $this->plugin->model->validate_item( $item );
-			if ( is_wp_error( $validity ) ) {
-				return $validity;
-			}
+	public function validate( $value ) {
+		$validity = $this->plugin->model->validate_item_property( $this->property, $value );
+		if ( is_wp_error( $validity ) ) {
+			return $validity;
 		}
 
 		// Allow customize_validate_{$this->id} filters to apply.
-		return parent::validate( $item );
+		return parent::validate( $value );
 	}
 
 	/**
-	 * Sanitize an item's properties.
+	 * Sanitize an item's property value.
 	 *
-	 * @param array|false $item The items to sanitize, or false if the item is to be deleted.
+	 * @param mixed $value The item property to sanitize.
 	 * @return array|false|\WP_Error Sanitized value, or `null`/`WP_Error` if invalid.
 	 */
-	public function sanitize( $item ) {
-
-		// If not false then isn't deletion case.
-		if ( false !== $item ) {
-			$item = $this->plugin->model->sanitize_item( $item );
-			if ( is_wp_error( $item ) ) {
-				return $item;
-			}
+	public function sanitize( $value ) {
+		$value = $this->plugin->model->sanitize_item_property( $this->property, $value );
+		if ( is_wp_error( $value ) ) {
+			return $value;
 		}
 
 		// Allow customize_sanitize_{$this->id} filters to apply.
-		$item = parent::sanitize( $item );
+		$value = parent::sanitize( $value );
 
-		return $item;
+		return $value;
 	}
 
 	/**
 	 * Save the value of the setting, using the related API.
 	 *
-	 * @param array|false $item The value to update.
+	 * @param mixed $value The value to update.
 	 * @return bool The result of saving the value.
 	 */
-	protected function update( $item ) {
-		if ( false === $item ) {
-			$r = $this->plugin->model->delete_item( $this->post_id );
-		} else {
-			$r = $this->plugin->model->update_item( $this->post_id, $item );
+	protected function update( $value ) {
+		$item = $this->plugin->model->get_item( $this->post_id );
+		if ( null === $item ) {
+			return false;
 		}
+		$item[ $this->property ] = $value;
+		$r = $this->plugin->model->update_item( $this->post_id, $item );
 		return ! is_wp_error( $r );
 	}
 

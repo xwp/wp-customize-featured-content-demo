@@ -22,12 +22,18 @@ wp.customize.selectiveRefresh.partialConstructor.featured_item = (function( api,
 		initialize: function( id, options ) {
 			var partial = this;
 			api.selectiveRefresh.Partial.prototype.initialize.call( partial, id, options );
+
+			api( id + '[position]', function( positionSetting ) {
+				positionSetting.bind( function() {
+					partial.repositionPlacements();
+				} );
+			} );
 		},
 
 		/**
 		 * Return whether the setting is related to the partial.
 		 *
-		 * @todo It is somewhat disingenuous to assume that calling this method will always be proceeded by refresh.
+		 * @inheritDoc
 		 *
 		 * @param {wp.customize.Value|string} setting  ID or object for setting.
 		 * @param {object} newValue New value.
@@ -35,58 +41,41 @@ wp.customize.selectiveRefresh.partialConstructor.featured_item = (function( api,
 		 * @return {boolean} Whether the setting is related to the partial.
 		 */
 		isRelatedSetting: function isRelatedSetting( setting, newValue, oldValue ) {
-			var partial = this, isRelated, newValueComp, oldValueComp;
-			isRelated = api.selectiveRefresh.Partial.prototype.isRelatedSetting.call( partial, setting, newValue, oldValue );
-			if ( isRelated && newValue && oldValue ) {
-				newValueComp = _.extend( {}, newValue, { position: null } );
-				oldValueComp = _.extend( {}, oldValue, { position: null } );
-				partial.positionChanged = newValue.position !== oldValue.position;
-				partial.onlyPositionChanged = _.isEqual( newValueComp, oldValueComp ) && partial.positionChanged;
+			var partial = this, settingId;
+
+			// Prevent selective refresh in response to position changes since we handle them in separately and purely in DOM.
+			settingId = _.isString( setting ) ? setting : setting.id;
+			if ( settingId === partial.id + '[position]' ) {
+				return false;
 			}
-			return isRelated;
+
+			return api.selectiveRefresh.Partial.prototype.isRelatedSetting.call( partial, setting, newValue, oldValue );
 		},
 
 		/**
-		 * Refresh partial.
+		 * Reposition placements in response to position changes.
 		 *
-		 * @inheritDoc
+		 * @returns {void}
 		 */
-		refresh: function refresh() {
-			var partial = this, setting;
+		repositionPlacements: function repositionPlacements() {
+			var partial = this, positionSetting;
+			positionSetting = api( partial.id + '[position]' );
+			_.each( partial.placements(), function( placement ) {
+				var sortedItemContainers, itemsContainer;
+				itemsContainer = placement.container.parent();
+				placement.container.data( 'position', positionSetting.get() );
 
-			setting = api( _.first( partial.settings() ) );
-
-
-			// Handle deletion.
-			if ( false === setting.get() ) {
-				_.each( partial.placements(), function( placement ) {
-					placement.remove();
+				sortedItemContainers = itemsContainer.children().get().sort( function( a, b ) {
+					var positionA, positionB;
+					positionA = parseInt( $( a ).data( 'position' ), 10 );
+					positionB = parseInt( $( b ).data( 'position' ), 10 );
+					return positionA - positionB;
 				} );
-				return $.Deferred().resolve().promise();
-			}
 
-			// Re-sorts.
-			if ( partial.positionChanged ) {
-				_.each( partial.placements(), function( placement ) {
-					var sortedItemContainers, itemsContainer;
-					itemsContainer = placement.container.parent();
-					placement.container.data( 'position', setting.get().position );
-
-					sortedItemContainers = itemsContainer.children().get().sort( function( a, b ) {
-						return parseInt( $( a ).data( 'position' ), 10 ) - parseInt( $( b ).data( 'position' ), 10 );
-					} );
-
-					_.each( sortedItemContainers, function( itemContainer ) {
-						itemsContainer.append( itemContainer );
-					} );
+				_.each( sortedItemContainers, function( itemContainer ) {
+					itemsContainer.append( itemContainer );
 				} );
-			}
-
-			if ( partial.onlyPositionChanged ) {
-				return $.Deferred().resolve().promise();
-			}
-
-			return api.selectiveRefresh.Partial.prototype.refresh.call( partial );
+			} );
 		}
 	});
 

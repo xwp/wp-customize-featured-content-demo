@@ -3,7 +3,6 @@
 wp.customize.featuredContent.preview = (function( api ) {
 	'use strict';
 
-	// @todo Add integrations methods.
 	var component = {
 		data: {}
 	};

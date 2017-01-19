@@ -22,48 +22,33 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 			customize_action: '{customize_action}'
 		},
 
+		// Make it easy to change the ordering of controls with a centralized priority lookup.
+		controlPriorities: {
+			title_text: 10,
+			description_text: 20
+		},
+
 		/**
 		 * Initialize.
 		 *
-		 * @param {string} id Section ID.
+		 * @param {string} id      Section ID.
 		 * @param {object} options Options.
 		 * @returns {void}
 		 */
 		initialize: function( id, options ) {
-			var section = this, args, setting;
+			var section = this, args;
 
 			args = options ? _.clone( options ) : {};
-			args.params = args.params ? _.clone( args.params ) : {};
-			setting = api( id );
-			if ( ! setting || ! setting.extended( api.settingConstructor.featured_item ) ) {
-				throw new Error( 'The featured_item setting must be created up front.' );
-			}
-
-			// Let the title of the section correspond to the title of the featured item.
-			args.params.title = api( id ).get().title_text || section.l10n.no_title;
-			args.params.customizeAction = section.l10n.customize_action;
+			args.params = _.extend(
+				{
+					title: section.l10n.no_title,
+					customizeAction: section.l10n.customize_action,
+					settingIdBase: id
+				},
+				args.params || {}
+			);
 
 			api.Section.prototype.initialize.call( section, id, args );
-
-			// Let the section priority correspond to the position of the featured item.
-			section.syncPositionAsPriority();
-		},
-
-		/**
-		 * Let priority (position) of section be determined by position of the featured_item.
-		 *
-		 * @returns {void}
-		 */
-		syncPositionAsPriority: function syncPositionAsPriority() {
-			var section = this, setting, setPriority;
-			setting = api( section.id );
-			setPriority = function( itemData ) {
-				if ( false !== itemData ) {
-					section.priority.set( itemData.position );
-				}
-			};
-			setPriority( setting() );
-			setting.bind( setPriority );
 		},
 
 		/**
@@ -75,9 +60,26 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 			var section = this;
 			api.Section.prototype.ready.call( section );
 
-			section.setupTitleUpdating();
+			section.syncTitle();
+			section.syncPositionAsPriority();
 			section.addTitleControl();
 			section.addExcerptControl();
+		},
+
+		/**
+		 * Let priority (position) of section be determined by position of the featured_item.
+		 *
+		 * @returns {void}
+		 */
+		syncPositionAsPriority: function syncPositionAsPriority() {
+			var section = this;
+			api( section.params.settingIdBase + '[position]', function( positionSetting ) {
+				var setPriority = function( position ) {
+					section.priority.set( position );
+				};
+				setPriority( positionSetting() );
+				positionSetting.bind( setPriority );
+			} );
 		},
 
 		/**
@@ -85,22 +87,23 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 		 *
 		 * @returns {void}
 		 */
-		setupTitleUpdating: function() {
-			var section = this, setting = api( section.id ), sectionContainer, sectionOuterTitleElement,
+		syncTitle: function syncTitle() {
+			var section = this, sectionContainer, sectionOuterTitleElement,
 				sectionInnerTitleElement, customizeActionElement;
 
 			sectionContainer = section.container.closest( '.accordion-section' );
 			sectionOuterTitleElement = sectionContainer.find( '.accordion-section-title:first' );
 			sectionInnerTitleElement = sectionContainer.find( '.customize-section-title h3' ).first();
 			customizeActionElement = sectionInnerTitleElement.find( '.customize-action' ).first();
-			setting.bind( function( newItemData, oldItemData ) {
-				var title;
-				if ( newItemData && ( ! oldItemData || newItemData.title_text !== oldItemData.title_text ) ) {
-					title = newItemData.title_text || section.l10n.no_title;
+			api( section.params.settingIdBase + '[title_text]', function( titleSetting ) {
+				var setTitle = function( newTitle ) {
+					var title = $.trim( newTitle ) || section.l10n.no_title;
 					sectionOuterTitleElement.text( title );
 					sectionInnerTitleElement.text( title );
 					sectionInnerTitleElement.prepend( customizeActionElement );
-				}
+				};
+				titleSetting.bind( setTitle );
+				setTitle( titleSetting() );
 			} );
 		},
 
@@ -109,19 +112,22 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 		 *
 		 * @returns {wp.customize.Control} Added control.
 		 */
-		addTitleControl: function() {
-			var section = this, control, setting = api( section.id );
-			control = new api.controlConstructor.dynamic( section.id + '[title_text]', {
+		addTitleControl: function addTitleControl() {
+			var section = this, control, customizeId;
+			customizeId = section.params.settingIdBase + '[title_text]'; // Both the the ID for the control and the setting.
+			control = new api.controlConstructor.dynamic( customizeId, {
 				params: {
 					section: section.id,
-					priority: 10,
+					priority: section.controlPriorities.title_text,
 					label: section.l10n.title_text_label,
 					active: true,
 					settings: {
-						'default': setting.id
+						'default': customizeId
 					},
 					field_type: 'text',
-					setting_property: 'title_text'
+					input_attrs: {
+						'data-customize-setting-link': customizeId
+					}
 				}
 			} );
 
@@ -135,19 +141,22 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 		 *
 		 * @returns {wp.customize.Control} Added control.
 		 */
-		addExcerptControl: function() {
-			var section = this, control, setting = api( section.id );
-			control = new api.controlConstructor.dynamic( section.id + '[description_text]', {
+		addExcerptControl: function addExcerptControl() {
+			var section = this, control, customizeId;
+			customizeId = section.params.settingIdBase + '[description_text]'; // Both the the ID for the control and the setting.
+			control = new api.controlConstructor.dynamic( customizeId, {
 				params: {
 					section: section.id,
-					priority: 60,
+					priority: section.controlPriorities.description_text,
 					label: section.l10n.description_text_label,
 					active: true,
 					settings: {
-						'default': setting.id
+						'default': customizeId
 					},
 					field_type: 'textarea',
-					setting_property: 'description_text'
+					input_attrs: {
+						'data-customize-setting-link': customizeId
+					}
 				}
 			} );
 

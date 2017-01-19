@@ -62,6 +62,12 @@ class Model {
 				'validate_callback' => array( $this, 'validate_post_id' ),
 				'storage' => array( 'postmeta', 'related_post_id' ),
 			),
+			'status' => array(
+				'type' => 'string',
+				'default' => 'publish',
+				'enum' => array( 'publish', 'trash' ),
+				'storage' => array( 'post', 'post_status' ),
+			),
 			'url' => array(
 				'type' => 'string',
 				'format' => 'url',
@@ -297,54 +303,47 @@ class Model {
 	}
 
 	/**
-	 * Validate item.
+	 * Validate item property.
 	 *
-	 * @param array $properties Item properties.
+	 * @param string $property_name  Property name.
+	 * @param mixed  $property_value Property value.
 	 * @return bool|\WP_Error True on success, `WP_Error` on failure.
 	 */
-	public function validate_item( $properties ) {
+	public function validate_item_property( $property_name, $property_value ) {
 		$item_schema = $this->get_item_schema_properties();
-		$unrecognized_properties = array_diff( array_keys( $properties ), array_keys( $item_schema ) );
-		if ( 0 !== count( $unrecognized_properties ) ) {
+		if ( ! isset( $item_schema[ $property_name ] ) ) {
 			return new \WP_Error( 'unrecognized_properties' );
 		}
-		foreach ( $properties as $id => $value ) {
-			$field_schema = $item_schema[ $id ];
-			$validate_callback = 'rest_validate_value_from_schema';
-			if ( isset( $field_schema['validate_callback'] ) ) {
-				$validate_callback = $field_schema['validate_callback'];
-			}
-			$validity = call_user_func( $validate_callback, $value, $field_schema, $id );
-			if ( is_wp_error( $validity ) ) {
-				return $validity;
-			}
+		$field_schema = $item_schema[ $property_name ];
+		$validate_callback = 'rest_validate_value_from_schema';
+		if ( isset( $field_schema['validate_callback'] ) ) {
+			$validate_callback = $field_schema['validate_callback'];
+		}
+		$validity = call_user_func( $validate_callback, $property_value, $field_schema, $property_name );
+		if ( is_wp_error( $validity ) ) {
+			return $validity;
 		}
 		return true;
 	}
 
 	/**
-	 * Sanitize item.
+	 * Sanitize item property.
 	 *
-	 * @param array $properties Item properties.
+	 * @param string $property_name  Property name.
+	 * @param mixed  $property_value Property value.
 	 * @return array|\WP_Error Sanitized items or `WP_Error` if invalid.
 	 */
-	public function sanitize_item( $properties ) {
+	public function sanitize_item_property( $property_name, $property_value ) {
 		$item_schema = $this->get_item_schema_properties();
-		foreach ( $properties as $id => &$value ) {
-			if ( ! isset( $item_schema[ $id ] ) ) {
-				continue;
-			}
-			$field_schema = $item_schema[ $id ];
-			$sanitize_callback = 'rest_sanitize_value_from_schema';
-			if ( isset( $field_schema['sanitize_callback'] ) ) {
-				$sanitize_callback = $field_schema['sanitize_callback'];
-			}
-			$value = call_user_func( $sanitize_callback, $value, $field_schema, $id );
-			if ( is_wp_error( $value ) ) {
-				return $value;
-			}
+		if ( ! isset( $item_schema[ $property_name ] ) ) {
+			return null;
 		}
-		return $properties;
+		$field_schema = $item_schema[ $property_name ];
+		$sanitize_callback = 'rest_sanitize_value_from_schema';
+		if ( isset( $field_schema['sanitize_callback'] ) ) {
+			$sanitize_callback = $field_schema['sanitize_callback'];
+		}
+		return call_user_func( $sanitize_callback, $property_value, $field_schema, $property_name );
 	}
 
 	/**
@@ -375,7 +374,6 @@ class Model {
 
 		$post_array = array(
 			'post_type' => Model::POST_TYPE,
-			'post_status' => 'publish',
 			'meta_input' => array(),
 		);
 
@@ -441,6 +439,7 @@ class Model {
 			$query = new \WP_Query( array(
 				'post_type' => static::POST_TYPE,
 				'posts_per_page' => -1,
+				'post_status' => 'publish',
 			) );
 
 			// Note: fields=>ids is not used because we want to cache the full post objects.

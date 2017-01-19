@@ -101,16 +101,22 @@ class Customizer {
 		// @todo Should this register all of the settings or should they be fetched dynamically?
 		$items = $this->plugin->model->get_items();
 		foreach ( $items as $id => $item ) {
-			$setting = new Featured_Item_Property_Customize_Setting( $wp_customize, $id, array(
-				'plugin' => $this->plugin,
-			) );
-			$wp_customize->add_setting( $setting );
+			foreach ( array_keys( $item ) as $property_name ) {
+				$setting = new Featured_Item_Property_Customize_Setting( $wp_customize, array(
+					'post_id' => $id,
+					'property' => $property_name,
+					'plugin' => $this->plugin,
+				) );
+				$wp_customize->add_setting( $setting );
+			}
 		}
+		add_filter( 'customize_sanitize_nav_menus_created_posts', array( $this, 'filter_nav_menus_created_posts_setting' ) );
 
+		// Note that sections will by dynamically added via JS.
 		$wp_customize->add_panel( 'featured_items', array(
+			'type' => 'featured_items',
 			'title' => __( 'Featured Items', 'customize-featured-content-demo' ),
 		) );
-		// Note that sections will by dynamically added via JS.
 	}
 
 	/**
@@ -121,7 +127,21 @@ class Customizer {
 	}
 
 	/**
-	 * Filter featured items list to inject featured_item auto-draft post IDs.
+	 * Filter out featured_item posts from nav_menus_created_posts since we will handle publishing ourselves.
+	 *
+	 * @param array $post_ids Post IDs that have been created in the customizer session.
+	 * @return array Post IDs for auto-draft posts.
+	 */
+	public function filter_nav_menus_created_posts_setting( $post_ids ) {
+		return array_filter( $post_ids, function( $post_id ) {
+			return Model::POST_TYPE !== get_post_type( $post_id );
+		} );
+	}
+
+	/**
+	 * Filter featured items list to apply the customized state.
+	 *
+	 * Inject featured items created in the current changeset, and remove the items that have been trashed.
 	 *
 	 * @see Model::get_items()
 	 *
@@ -129,25 +149,17 @@ class Customizer {
 	 * @return array Item IDs.
 	 */
 	public function filter_featured_items( $item_ids ) {
-		$created_posts_setting = $this->manager->get_setting( 'nav_menus_created_posts' );
 
-		// Amend the items list with any auto-draft posts created in the customize session.
-		foreach ( $created_posts_setting->post_value( array() ) as $post_id ) {
-			$post = get_post( $post_id );
-			if ( $post && Model::POST_TYPE === $post->post_type ) {
-				$item_ids[] = $post->ID;
+		foreach ( $this->manager->settings() as $setting ) {
+			if ( $setting instanceof Featured_Item_Property_Customize_Setting && 'status' === $setting->property ) {
+				$status = $setting->value();
+				if ( 'publish' === $status ) {
+					$item_ids[] = $setting->post_id;
+				} elseif ( 'trash' === $status ) {
+					$item_ids = array_diff( $item_ids, array( $setting->post_id ) );
+				}
 			}
 		}
-
-		// Remove items that have been marked for deletion.
-		$manager = $this->manager; // For PHP 5.3.
-		$item_ids = array_filter(
-			$item_ids,
-			function ( $item_id ) use ( $manager ) {
-				$setting = $manager->get_setting( Featured_Item_Property_Customize_Setting::get_setting_id( $item_id ) );
-				return ! ( $setting && false === $setting->post_value() );
-			}
-		);
 
 		return $item_ids;
 	}
@@ -166,16 +178,22 @@ class Customizer {
 	 * in response to syncing of settings to the preview.
 	 */
 	function add_partials() {
+		$partial_settings = array();
 		foreach ( $this->manager->settings() as $setting ) {
-			if ( ! ( $setting instanceof Featured_Item_Property_Customize_Setting ) ) {
-				continue;
+			if ( $setting instanceof Featured_Item_Property_Customize_Setting ) {
+				$partial_id = sprintf( '%s[%d]', Featured_Item_Property_Customize_Setting::TYPE, $setting->post_id );
+				$partial_settings[ $partial_id ][ $setting->property ] = $setting;
 			}
-			$partial_id = $setting->id;
+		}
+
+		foreach ( $partial_settings as $partial_id => $settings ) {
+			$title_text_setting = $settings['title_text'];
 			$partial_args = array(
 				'type' => 'featured_item',
 				'plugin' => $this->plugin,
-				'selector' => sprintf( '.featured-content-item-%d', $setting->post_id ),
-				'settings' => array( $setting->id ),
+				'selector' => sprintf( '.featured-content-item-%d', $title_text_setting->post_id ),
+				'primary_setting' => $title_text_setting->id,
+				'settings' => array_values( wp_list_pluck( $settings, 'id' ) ),
 				'container_inclusive' => true,
 				'render_callback' => array( $this, 'render_item_partial' ),
 			);
@@ -203,7 +221,7 @@ class Customizer {
 	 * @return array|false Setting args or `false` if the `$setting_id` was not recognized.
 	 */
 	public function filter_customize_dynamic_setting_args( $setting_args, $setting_id ) {
-		if ( preg_match( Featured_Item_Property_Customize_Setting::ID_PATTERN, $setting_id ) ) {
+		if ( preg_match( Featured_Item_Property_Customize_Setting::ID_PATTERN, $setting_id, $matches ) ) {
 			if ( false == $setting_args ) {
 				$setting_args = array();
 			}
@@ -212,6 +230,8 @@ class Customizer {
 				array(
 					'type' => Featured_Item_Property_Customize_Setting::TYPE,
 					'plugin' => $this->plugin,
+					'post_id' => $matches['post_id'],
+					'property' => $matches['property'],
 				)
 			);
 		}

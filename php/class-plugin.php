@@ -123,14 +123,25 @@ class Plugin {
 			$wp_scripts->add( $handle, $src, $deps, $this->version );
 		}
 
+		// Base namespace.
 		$handle = 'customize-featured-content-demo-base';
 		$src = $plugin_dir_url . 'js/base.js';
 		$deps = array( 'customize-base' );
 		$wp_scripts->add( $handle, $src, $deps, $this->version );
 
+		// Setting.
+		$handle = 'customize-featured-item-property-setting';
+		$src = $plugin_dir_url . 'js/featured-item-property-setting.js';
+		$deps = array(
+			'customize-controls',
+		);
+		$wp_scripts->add( $handle, $src, $deps, $this->version );
+
+		// Section.
 		$handle = 'customize-featured-item-section';
 		$src = $plugin_dir_url . 'js/featured-item-section.js';
 		$deps = array(
+			'customize-featured-item-property-setting',
 			'customize-dynamic-control',
 			'customize-featured-content-demo-base',
 			'customize-controls',
@@ -148,9 +159,21 @@ class Plugin {
 			) )
 		) );
 
+		// Panel.
+		$handle = 'customize-featured-items-panel';
+		$src = $plugin_dir_url . 'js/featured-items-panel.js';
+		$deps = array(
+			'customize-controls',
+			'customize-featured-item-property-setting',
+			'customize-featured-item-section',
+		);
+		$wp_scripts->add( $handle, $src, $deps, $this->version );
+
+		// Pane (Controls).
 		$handle = 'customize-featured-content-demo-pane';
 		$src = $plugin_dir_url . 'js/pane.js';
 		$deps = array(
+			'customize-featured-items-panel',
 			'customize-featured-item-section',
 			'customize-featured-content-demo-base',
 			'customize-controls',
@@ -158,6 +181,7 @@ class Plugin {
 		);
 		$wp_scripts->add( $handle, $src, $deps, $this->version );
 
+		// Partial.
 		$handle = 'customize-featured-item-partial';
 		$src = $plugin_dir_url . 'js/featured-item-partial.js';
 		$deps = array(
@@ -165,6 +189,7 @@ class Plugin {
 		);
 		$wp_scripts->add( $handle, $src, $deps, $this->version );
 
+		// Preview.
 		$handle = 'customize-featured-content-demo-preview';
 		$src = $plugin_dir_url . 'js/preview.js';
 		$deps = array(
