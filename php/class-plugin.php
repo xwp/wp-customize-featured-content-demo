@@ -177,6 +177,7 @@ class Plugin {
 		$handle = 'customize-featured-items-panel';
 		$src = $plugin_dir_url . 'js/featured-items-panel.js';
 		$deps = array(
+			'wp-a11y',
 			'customize-controls',
 			'customize-featured-item-property-setting',
 			'customize-featured-item-section',

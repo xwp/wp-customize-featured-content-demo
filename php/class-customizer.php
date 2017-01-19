@@ -94,6 +94,10 @@ class Customizer {
 	public function register( \WP_Customize_Manager $wp_customize ) {
 		$this->manager = $wp_customize;
 
+		// Register panel type so that templates will be printed. Core should do this by default for any added panel.
+		$this->manager->register_panel_type( __NAMESPACE__ . '\\Featured_Items_Customize_Panel' );
+
+		// Register the dynamic control type if it is not already registered by Customize Posts.
 		if ( ! class_exists( '\WP_Customize_Dynamic_Control' ) ) {
 			$this->manager->register_control_type( __NAMESPACE__ . '\WP_Customize_Dynamic_Control' );
 		}
@@ -113,10 +117,10 @@ class Customizer {
 		add_filter( 'customize_sanitize_nav_menus_created_posts', array( $this, 'filter_nav_menus_created_posts_setting' ) );
 
 		// Note that sections will by dynamically added via JS.
-		$wp_customize->add_panel( 'featured_items', array(
-			'type' => 'featured_items',
+		$panel = new Featured_Items_Customize_Panel( $this->manager, 'featured_items', array(
 			'title' => __( 'Featured Items', 'customize-featured-content-demo' ),
 		) );
+		$wp_customize->add_panel( $panel );
 	}
 
 	/**

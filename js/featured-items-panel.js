@@ -26,7 +26,37 @@ wp.customize.panelConstructor.featured_items = (function( api, $ ) {
 			api.each( panel.handleSettingAddition );
 			api.bind( 'add', panel.handleSettingAddition );
 
+			panel.injectAdditionButton();
 			panel.setupSectionSorting();
+		},
+
+		/**
+		 * Create a featured item section when a featured item setting is added.
+		 *
+		 * @returns {void}
+		 */
+		injectAdditionButton: function injectAdditionButton() {
+			var panel = this, container, button, additionFailure;
+
+			container = $( wp.template( 'featured-items-customize-panel-addition-ui' )() );
+			button = container.find( 'button' );
+			additionFailure = container.find( '.addition-failure' );
+			button.on( 'click', function() {
+				var promise = panel.createItem();
+				button.prop( 'disabled', true );
+				button.addClass( 'progress' );
+				additionFailure.slideUp();
+				promise.fail( function() {
+					additionFailure.stop().slideDown();
+					wp.a11y.speak( additionFailure.text() );
+				} );
+				promise.always( function() {
+					button.prop( 'disabled', false );
+					button.removeClass( 'progress' );
+				} );
+			} );
+
+			panel.contentContainer.find( '.panel-meta:first' ).append( container );
 		},
 
 		/**
@@ -40,6 +70,21 @@ wp.customize.panelConstructor.featured_items = (function( api, $ ) {
 			if ( setting.extended( api.settingConstructor.featured_item_property ) ) {
 				panel.addSection( setting );
 			}
+		},
+
+		/**
+		 * Create item.
+		 *
+		 * @returns {jQuery.promise} Promise.
+		 */
+		createItem: function createItem() {
+			var deferred = $.Deferred();
+
+			setTimeout( function() {
+				deferred.reject();
+			}, 1000 ); // eslint-disable-line no-magic-numbers
+
+			return deferred.promise();
 		},
 
 		/**
