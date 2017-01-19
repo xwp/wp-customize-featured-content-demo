@@ -17,7 +17,6 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 		l10n: {
 			no_title: '{missing_text:untitled}',
 			featured_image_id_label: '{missing_text:featured_image_id_label}',
-
 			featured_image_button_labels: {
 				change: '{missing_text:featured_image_button_labels.change}',
 				'default': '{missing_text:featured_image_button_labels.default}',
@@ -27,7 +26,6 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 				frame_button: '{missing_text:featured_image_button_labels.frame_button}',
 				frame_title: '{missing_text:featured_image_button_labels.frame_title}'
 			},
-
 			related_post_id_label: '{missing_text:related_post_id_label}',
 			related_post_id_placeholder: '{missing_text:related_post_id_placeholder}',
 			title_text_label: '{missing_text:title}',
