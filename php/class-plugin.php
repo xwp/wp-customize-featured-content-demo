@@ -163,6 +163,7 @@ class Plugin {
 					'frame_button' => __( 'Choose Image', 'customize-featured-content-demo' ),
 				),
 				'url_label' => __( 'URL (Override)', 'customize-featured-content-demo' ),
+				'url_placeholder' => __( 'https://...', 'customize-featured-content-demo' ),
 				'related_post_id_label' => __( 'Related item (Optional)', 'customize-featured-content-demo' ),
 				'related_post_id_placeholder' => __( 'Search items', 'customize-featured-content-demo' ),
 				'title_text_label' => __( 'Title (Override)', 'customize-featured-content-demo' ),

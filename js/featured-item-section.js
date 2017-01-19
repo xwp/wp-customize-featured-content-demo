@@ -28,6 +28,7 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 			},
 			related_post_id_label: '{missing_text:related_post_id_label}',
 			url_label: '{missing_text:url_label}',
+			url_placeholder: '{missing_text:url_placeholder}',
 			related_post_id_placeholder: '{missing_text:related_post_id_placeholder}',
 			title_text_label: '{missing_text:title}',
 			description_text_label: '{missing_text:description}',
@@ -303,7 +304,8 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 					},
 					field_type: 'url',
 					input_attrs: {
-						'data-customize-setting-link': customizeId
+						'data-customize-setting-link': customizeId,
+						placeholder: section.l10n.url_placeholder
 					}
 				}
 			} );
