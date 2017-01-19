@@ -1,6 +1,6 @@
 <?php
 /**
- * Class Customize_Setting.
+ * Class Featured_Item_Property_Customize_Setting.
  *
  * @package Customize_Featured_Content_Demo
  */
@@ -8,13 +8,11 @@
 namespace Customize_Featured_Content_Demo;
 
 /**
- * Class Customize_Setting
- *
- * @todo Rename this to Item_Customize_Setting for clarity.
+ * Class Featured_Item_Property_Customize_Setting
  *
  * @package Customize_Featured_Content_Demo
  */
-class Customize_Setting extends \WP_Customize_Setting {
+class Featured_Item_Property_Customize_Setting extends \WP_Customize_Setting {
 
 	const TYPE = 'featured_item';
 
@@ -74,7 +72,7 @@ class Customize_Setting extends \WP_Customize_Setting {
 	 * @return string Setting ID.
 	 */
 	static public function get_setting_id( $post_id ) {
-		return sprintf( '%s[%d]', Customize_Setting::TYPE, $post_id );
+		return sprintf( '%s[%d]', Featured_Item_Property_Customize_Setting::TYPE, $post_id );
 	}
 
 	/**

@@ -101,7 +101,7 @@ class Customizer {
 		// @todo Should this register all of the settings or should they be fetched dynamically?
 		$items = $this->plugin->model->get_items();
 		foreach ( $items as $id => $item ) {
-			$setting = new Customize_Setting( $wp_customize, $id, array(
+			$setting = new Featured_Item_Property_Customize_Setting( $wp_customize, $id, array(
 				'plugin' => $this->plugin,
 			) );
 			$wp_customize->add_setting( $setting );
@@ -144,7 +144,7 @@ class Customizer {
 		$item_ids = array_filter(
 			$item_ids,
 			function ( $item_id ) use ( $manager ) {
-				$setting = $manager->get_setting( Customize_Setting::get_setting_id( $item_id ) );
+				$setting = $manager->get_setting( Featured_Item_Property_Customize_Setting::get_setting_id( $item_id ) );
 				return ! ( $setting && false === $setting->post_value() );
 			}
 		);
@@ -167,7 +167,7 @@ class Customizer {
 	 */
 	function add_partials() {
 		foreach ( $this->manager->settings() as $setting ) {
-			if ( ! ( $setting instanceof Customize_Setting ) ) {
+			if ( ! ( $setting instanceof Featured_Item_Property_Customize_Setting ) ) {
 				continue;
 			}
 			$partial_id = $setting->id;
@@ -190,7 +190,7 @@ class Customizer {
 	 */
 	public function render_item_partial( \WP_Customize_Partial $partial ) {
 		$setting = $partial->component->manager->get_setting( $partial->primary_setting );
-		if ( $setting instanceof Customize_Setting ) {
+		if ( $setting instanceof Featured_Item_Property_Customize_Setting ) {
 			$this->plugin->view->render_item( $setting->post_id );
 		}
 	}
@@ -203,14 +203,14 @@ class Customizer {
 	 * @return array|false Setting args or `false` if the `$setting_id` was not recognized.
 	 */
 	public function filter_customize_dynamic_setting_args( $setting_args, $setting_id ) {
-		if ( preg_match( Customize_Setting::ID_PATTERN, $setting_id ) ) {
+		if ( preg_match( Featured_Item_Property_Customize_Setting::ID_PATTERN, $setting_id ) ) {
 			if ( false == $setting_args ) {
 				$setting_args = array();
 			}
 			$setting_args = array_merge(
 				$setting_args,
 				array(
-					'type' => Customize_Setting::TYPE,
+					'type' => Featured_Item_Property_Customize_Setting::TYPE,
 					'plugin' => $this->plugin,
 				)
 			);
@@ -228,8 +228,8 @@ class Customizer {
 	 */
 	public function filter_customize_dynamic_setting_class( $setting_class, $setting_id, $setting_args ) {
 		unset( $setting_id );
-		if ( isset( $setting_args['type'] ) && Customize_Setting::TYPE === $setting_args['type'] ) {
-			$setting_class = __NAMESPACE__ . '\\Customize_Setting';
+		if ( isset( $setting_args['type'] ) && Featured_Item_Property_Customize_Setting::TYPE === $setting_args['type'] ) {
+			$setting_class = __NAMESPACE__ . '\\Featured_Item_Property_Customize_Setting';
 		}
 		return $setting_class;
 	}
