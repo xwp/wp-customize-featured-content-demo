@@ -54,17 +54,19 @@ class View {
 		}
 
 		$related_post = ! empty( $item['related_post_id'] ) ? get_post( $item['related_post_id'] ) : null;
-		if ( ! $item['url'] && $related_post ) {
-			$item['url'] = get_permalink( $related_post->ID );
-		}
-		if ( ! $item['title'] && $related_post ) {
-			$item['title'] = $related_post->post_title;
-		}
-		if ( ! $item['excerpt'] && $related_post ) {
-			$item['excerpt'] = $related_post->post_excerpt;
-		}
-		if ( ! $item['featured_image_id'] && $related_post ) {
-			$item['featured_image_id'] = get_post_thumbnail_id( $related_post );
+		if ( $related_post ) {
+			if ( ! $item['url'] ) {
+				$item['url'] = get_permalink( $related_post->ID );
+			}
+			if ( ! $item['title'] ) {
+				$item['title'] = $related_post->post_title;
+			}
+			if ( ! $item['excerpt'] ) {
+				$item['excerpt'] = $related_post->post_excerpt;
+			}
+			if ( ! $item['featured_image_id'] ) {
+				$item['featured_image_id'] = get_post_thumbnail_id( $related_post );
+			}
 		}
 		?>
 		<li class="<?php echo esc_attr( "featured-content-item featured-content-item-$id" ); ?>" data-position="<?php echo esc_attr( $item['position'] ); ?>">
