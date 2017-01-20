@@ -55,7 +55,6 @@ class Model {
 	 */
 	public function get_item_schema_properties() {
 
-		// @todo Add descriptions.
 		// @todo Add a flag for whether or not the value should be exposed as raw/rendered in the REST API? Add a render_callback?
 		// @todo Add get_links callback?
 		return array(
@@ -68,6 +67,7 @@ class Model {
 				'default' => 0,
 			),
 			'related' => array(
+				'description' => __( 'ID for the related item.', 'customize-featured-content-demo' ),
 				'type' => 'integer',
 				'default' => 0,
 				'minimum' => 0,
@@ -75,12 +75,14 @@ class Model {
 				'storage' => array( 'postmeta', 'related' ),
 			),
 			'status' => array(
+				'description' => __( 'A named status for the object.', 'default' ),
 				'type' => 'string',
 				'default' => 'publish',
 				'enum' => array( 'auto-draft', 'publish', 'trash' ),
 				'storage' => array( 'post', 'post_status' ),
 			),
 			'url' => array(
+				'description' => __( 'URL for the featured item.', 'customize-featured-content-demo' ),
 				'type' => 'string',
 				'format' => 'url',
 				'default' => '',
@@ -88,6 +90,7 @@ class Model {
 				'storage' => array( 'postmeta', 'url' ),
 			),
 			'featured_media' => array(
+				'description' => __( 'The ID of the featured media for the object.', 'default' ),
 				'type' => 'integer',
 				'default' => 0,
 				'minimum' => 0,
@@ -95,30 +98,35 @@ class Model {
 				'storage' => array( 'postmeta', '_thumbnail_id' ),
 			),
 			'position' => array(
+				'description' => __( 'The order of the object in relation to other object of its type.', 'default' ),
 				'type' => 'integer',
 				'default' => 0,
 				'minimum' => 0,
 				'storage' => array( 'post', 'menu_order' ),
 			),
 			'title' => array(
+				'description' => __( 'The title for the object.', 'default' ),
 				'type' => 'string',
 				'default' => '',
 				'sanitize_callback' => array( $this, 'sanitize_text' ),
 				'storage' => array( 'post', 'post_title' ),
 			),
 			'title_color' => array(
+				'description' => __( 'The text color for the title.', 'customize-featured-content-demo' ),
 				'type' => 'string',
 				'default' => '',
 				'validate_callback' => array( $this, 'validate_color' ),
 				'storage' => array( 'postmeta', 'title_color' ),
 			),
 			'title_background' => array(
+				'description' => __( 'The background color for the title.', 'customize-featured-content-demo' ),
 				'type' => 'string',
 				'default' => '',
 				'validate_callback' => array( $this, 'validate_color' ),
 				'storage' => array( 'postmeta', 'title_background' ),
 			),
 			'title_font_size' => array(
+				'description' => __( 'The font size for the title.', 'customize-featured-content-demo' ),
 				'type' => 'integer',
 				'default' => 50,
 				'minimum' => 8,
@@ -126,34 +134,40 @@ class Model {
 				'storage' => array( 'postmeta', 'title_font_size' ),
 			),
 			'title_top' => array(
+				'description' => __( 'The top position for the title.', 'customize-featured-content-demo' ),
 				'type' => 'integer',
 				'default' => 0,
 				'storage' => array( 'postmeta', 'title_top' ),
 			),
 			'title_left' => array(
+				'description' => __( 'The left position for the title.', 'customize-featured-content-demo' ),
 				'type' => 'integer',
 				'default' => 0,
 				'storage' => array( 'postmeta', 'title_left' ),
 			),
 			'excerpt' => array(
+				'description' => __( 'The excerpt for the object.', 'default' ),
 				'type' => 'string',
 				'default' => '',
 				'sanitize_callback' => array( $this, 'sanitize_text' ),
 				'storage' => array( 'post', 'post_excerpt' ),
 			),
 			'excerpt_color' => array(
+				'description' => __( 'The text color for the excerpt.', 'customize-featured-content-demo' ),
 				'type' => 'string',
 				'default' => '',
 				'validate_callback' => array( $this, 'validate_color' ),
 				'storage' => array( 'postmeta', 'excerpt_color' ),
 			),
 			'excerpt_background' => array(
+				'description' => __( 'The background color for the excerpt.', 'customize-featured-content-demo' ),
 				'type' => 'string',
 				'default' => '',
 				'validate_callback' => array( $this, 'validate_color' ),
 				'storage' => array( 'postmeta', 'excerpt_background' ),
 			),
 			'excerpt_font_size' => array(
+				'description' => __( 'The font size for the excerpt.', 'customize-featured-content-demo' ),
 				'type' => 'integer',
 				'default' => 20,
 				'minimum' => 8,
@@ -161,11 +175,13 @@ class Model {
 				'storage' => array( 'postmeta', 'excerpt_font_size' ),
 			),
 			'excerpt_top' => array(
+				'description' => __( 'The top position for the excerpt.', 'customize-featured-content-demo' ),
 				'type' => 'integer',
 				'default' => 0,
 				'storage' => array( 'postmeta', 'excerpt_top' ),
 			),
 			'excerpt_left' => array(
+				'description' => __( 'The left position for the excerpt.', 'customize-featured-content-demo' ),
 				'type' => 'integer',
 				'default' => 0,
 				'storage' => array( 'postmeta', 'excerpt_left' ),
