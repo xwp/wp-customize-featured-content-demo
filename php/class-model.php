@@ -56,74 +56,116 @@ class Model {
 	public function get_item_schema_properties() {
 
 		// @todo Add a flag for whether or not the value should be exposed as raw/rendered in the REST API? Add a render_callback?
-		// @todo Add get_links callback?
+		// @todo Add prepare_links_callback?
 		return array(
 			'id' => array(
 				'description' => __( 'Unique identifier for the object.', 'default' ),
 				'type' => 'integer',
 				'context' => array( 'view', 'edit', 'embed' ),
 				'readonly' => true,
-				'storage' => array( 'post', 'ID' ),
 				'default' => 0,
+				'arg_options' => array(
+					'storage' => array(
+						'object' => 'post',
+						'key' => 'ID',
+					),
+				),
 			),
 			'related' => array(
 				'description' => __( 'ID for the related item.', 'customize-featured-content-demo' ),
 				'type' => 'integer',
 				'default' => 0,
 				'minimum' => 0,
-				'validate_callback' => array( $this, 'validate_post_id' ),
-				'storage' => array( 'postmeta', 'related' ),
+				'arg_options' => array(
+					'validate_callback' => array( $this, 'validate_post_id' ),
+					'storage' => array(
+						'object' => 'postmeta',
+					),
+				),
 			),
 			'status' => array(
 				'description' => __( 'A named status for the object.', 'default' ),
 				'type' => 'string',
 				'default' => 'publish',
 				'enum' => array( 'auto-draft', 'publish', 'trash' ),
-				'storage' => array( 'post', 'post_status' ),
+				'arg_options' => array(
+					'storage' => array(
+						'object' => 'post',
+						'key' => 'post_status',
+					),
+				),
 			),
 			'url' => array(
 				'description' => __( 'URL for the featured item.', 'customize-featured-content-demo' ),
 				'type' => 'string',
 				'format' => 'url',
 				'default' => '',
-				'validate_callback' => array( $this, 'validate_url' ),
-				'storage' => array( 'postmeta', 'url' ),
+				'arg_options' => array(
+					'validate_callback' => array( $this, 'validate_url' ),
+					'storage' => array(
+						'object' => 'postmeta',
+						'key' => 'url',
+					),
+				),
 			),
 			'featured_media' => array(
 				'description' => __( 'The ID of the featured media for the object.', 'default' ),
 				'type' => 'integer',
 				'default' => 0,
 				'minimum' => 0,
-				'validate_callback' => array( $this, 'validate_post_id' ),
-				'storage' => array( 'postmeta', '_thumbnail_id' ),
+				'arg_options' => array(
+					'validate_callback' => array( $this, 'validate_post_id' ),
+					'storage' => array(
+						'object' => 'postmeta',
+						'key' => '_thumbnail_id',
+					),
+				),
 			),
 			'position' => array(
 				'description' => __( 'The order of the object in relation to other object of its type.', 'default' ),
 				'type' => 'integer',
 				'default' => 0,
 				'minimum' => 0,
-				'storage' => array( 'post', 'menu_order' ),
+				'arg_options' => array(
+					'storage' => array(
+						'object' => 'post',
+						'key' => 'menu_order',
+					),
+				),
 			),
 			'title' => array(
 				'description' => __( 'The title for the object.', 'default' ),
 				'type' => 'string',
 				'default' => '',
-				'sanitize_callback' => array( $this, 'sanitize_text' ),
-				'storage' => array( 'post', 'post_title' ),
+				'arg_options' => array(
+					'sanitize_callback' => array( $this, 'sanitize_text' ),
+					'storage' => array(
+						'object' => 'post',
+						'key' => 'post_title',
+					),
+				),
 			),
 			'title_color' => array(
 				'description' => __( 'The text color for the title.', 'customize-featured-content-demo' ),
 				'type' => 'string',
 				'default' => '',
-				'validate_callback' => array( $this, 'validate_color' ),
-				'storage' => array( 'postmeta', 'title_color' ),
+				'arg_options' => array(
+					'validate_callback' => array( $this, 'validate_color' ),
+					'storage' => array(
+						'object' => 'postmeta',
+					),
+				),
 			),
 			'title_background' => array(
 				'description' => __( 'The background color for the title.', 'customize-featured-content-demo' ),
 				'type' => 'string',
 				'default' => '',
-				'validate_callback' => array( $this, 'validate_color' ),
-				'storage' => array( 'postmeta', 'title_background' ),
+				'arg_options' => array(
+					'validate_callback' => array( $this, 'validate_color' ),
+					'storage' => array(
+						'object' => 'postmeta',
+					),
+				),
 			),
 			'title_font_size' => array(
 				'description' => __( 'The font size for the title.', 'customize-featured-content-demo' ),
@@ -131,40 +173,65 @@ class Model {
 				'default' => 50,
 				'minimum' => 8,
 				'maximum' => 100,
-				'storage' => array( 'postmeta', 'title_font_size' ),
+				'arg_options' => array(
+					'storage' => array(
+						'object' => 'postmeta',
+					),
+				),
 			),
 			'title_top' => array(
 				'description' => __( 'The top position for the title.', 'customize-featured-content-demo' ),
 				'type' => 'integer',
 				'default' => 0,
-				'storage' => array( 'postmeta', 'title_top' ),
+				'arg_options' => array(
+					'storage' => array(
+						'object' => 'postmeta',
+					),
+				),
 			),
 			'title_left' => array(
 				'description' => __( 'The left position for the title.', 'customize-featured-content-demo' ),
 				'type' => 'integer',
 				'default' => 0,
-				'storage' => array( 'postmeta', 'title_left' ),
+				'arg_options' => array(
+					'storage' => array(
+						'object' => 'postmeta',
+					),
+				),
 			),
 			'excerpt' => array(
 				'description' => __( 'The excerpt for the object.', 'default' ),
 				'type' => 'string',
 				'default' => '',
-				'sanitize_callback' => array( $this, 'sanitize_text' ),
-				'storage' => array( 'post', 'post_excerpt' ),
+				'arg_options' => array(
+					'sanitize_callback' => array( $this, 'sanitize_text' ),
+					'storage' => array(
+						'object' => 'post',
+						'key' => 'post_excerpt',
+					),
+				),
 			),
 			'excerpt_color' => array(
 				'description' => __( 'The text color for the excerpt.', 'customize-featured-content-demo' ),
 				'type' => 'string',
 				'default' => '',
-				'validate_callback' => array( $this, 'validate_color' ),
-				'storage' => array( 'postmeta', 'excerpt_color' ),
+				'arg_options' => array(
+					'validate_callback' => array( $this, 'validate_color' ),
+					'storage' => array(
+						'object' => 'postmeta',
+					),
+				),
 			),
 			'excerpt_background' => array(
 				'description' => __( 'The background color for the excerpt.', 'customize-featured-content-demo' ),
 				'type' => 'string',
 				'default' => '',
-				'validate_callback' => array( $this, 'validate_color' ),
-				'storage' => array( 'postmeta', 'excerpt_background' ),
+				'arg_options' => array(
+					'validate_callback' => array( $this, 'validate_color' ),
+					'storage' => array(
+						'object' => 'postmeta',
+					),
+				),
 			),
 			'excerpt_font_size' => array(
 				'description' => __( 'The font size for the excerpt.', 'customize-featured-content-demo' ),
@@ -172,19 +239,31 @@ class Model {
 				'default' => 20,
 				'minimum' => 8,
 				'maximum' => 100,
-				'storage' => array( 'postmeta', 'excerpt_font_size' ),
+					'arg_options' => array(
+					'storage' => array(
+						'object' => 'postmeta',
+					),
+				),
 			),
 			'excerpt_top' => array(
 				'description' => __( 'The top position for the excerpt.', 'customize-featured-content-demo' ),
 				'type' => 'integer',
 				'default' => 0,
-				'storage' => array( 'postmeta', 'excerpt_top' ),
+				'arg_options' => array(
+					'storage' => array(
+						'object' => 'postmeta',
+					),
+				),
 			),
 			'excerpt_left' => array(
 				'description' => __( 'The left position for the excerpt.', 'customize-featured-content-demo' ),
 				'type' => 'integer',
 				'default' => 0,
-				'storage' => array( 'postmeta', 'excerpt_left' ),
+				'arg_options' => array(
+					'storage' => array(
+						'object' => 'postmeta',
+					),
+				),
 			),
 		);
 	}
@@ -333,14 +412,20 @@ class Model {
 			'id' => $post->ID,
 		);
 		foreach ( $this->get_item_schema_properties() as $field_id => $field_schema ) {
-			if ( 'post' === $field_schema['storage'][0] ) {
-				$post_field = $field_schema['storage'][1];
-				$value = $post->$post_field;
-			} elseif ( 'postmeta' === $field_schema['storage'][0] ) {
-				$meta_key = $field_schema['storage'][1];
-				$value = get_post_meta( $post->ID, $meta_key, true );
-				if ( 'integer' === $field_schema['type'] ) {
-					$value = (int) $value;
+			if ( isset( $field_schema['arg_options']['storage']['object'] ) ) {
+				$storage = array_merge(
+					array( 'key' => $field_id ),
+					$field_schema['arg_options']['storage']
+				);
+				if ( 'post' === $storage['object'] ) {
+					$post_field = $storage['key'];
+					$value = $post->$post_field;
+				} elseif ( 'postmeta' === $storage['object'] ) {
+					$meta_key = $storage['key'];
+					$value = get_post_meta( $post->ID, $meta_key, true );
+					if ( 'integer' === $field_schema['type'] ) {
+						$value = (int) $value;
+					}
 				}
 			}
 			if ( empty( $value ) ) {
@@ -373,8 +458,8 @@ class Model {
 		}
 		$field_schema = $item_schema[ $property_name ];
 		$validate_callback = 'rest_validate_value_from_schema';
-		if ( isset( $field_schema['validate_callback'] ) ) {
-			$validate_callback = $field_schema['validate_callback'];
+		if ( isset( $field_schema['arg_options']['validate_callback'] ) ) {
+			$validate_callback = $field_schema['arg_options']['validate_callback'];
 		}
 		$validity = call_user_func( $validate_callback, $property_value, $field_schema, $property_name );
 		if ( is_wp_error( $validity ) ) {
@@ -397,8 +482,8 @@ class Model {
 		}
 		$field_schema = $item_schema[ $property_name ];
 		$sanitize_callback = 'rest_sanitize_value_from_schema';
-		if ( isset( $field_schema['sanitize_callback'] ) ) {
-			$sanitize_callback = $field_schema['sanitize_callback'];
+		if ( isset( $field_schema['arg_options']['sanitize_callback'] ) ) {
+			$sanitize_callback = $field_schema['arg_options']['sanitize_callback'];
 		}
 		return call_user_func( $sanitize_callback, $property_value, $field_schema, $property_name );
 	}
@@ -443,12 +528,18 @@ class Model {
 				continue;
 			}
 
-			if ( 'post' === $field_schema['storage'][0] ) {
-				$post_field = $field_schema['storage'][1];
-				$post_array[ $post_field ] = $value;
-			} elseif ( 'postmeta' === $field_schema['storage'][0] ) {
-				$meta_key = $field_schema['storage'][1];
-				$post_array['meta_input'][ $meta_key ] = $value;
+			if ( isset( $field_schema['arg_options']['storage']['object'] ) ) {
+				$storage = array_merge(
+					array( 'key' => $field_id ),
+					$field_schema['arg_options']['storage']
+				);
+				if ( 'post' === $storage['object'] ) {
+					$post_field = $storage['key'];
+					$post_array[ $post_field ] = $value;
+				} elseif ( 'postmeta' === $storage['object'] ) {
+					$meta_key = $storage['key'];
+					$post_array['meta_input'][ $meta_key ] = $value;
+				}
 			}
 		}
 

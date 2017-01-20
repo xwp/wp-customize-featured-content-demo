@@ -106,13 +106,7 @@ class REST_Controller extends \WP_REST_Posts_Controller {
 
 		$properties = array();
 
-		// @todo Why not just use arg_options to begin with in the Model?
 		foreach ( $this->plugin->model->get_item_schema_properties() as $field_id => $field_schema ) {
-			$arg_options = wp_array_slice_assoc( $field_schema, array( 'sanitize_callback', 'validate_callback' ) );
-			unset( $field_schema['sanitize_callback'] );
-			unset( $field_schema['validate_callback'] );
-			unset( $field_schema['storage'] );
-			$field_schema['arg_options'] = $arg_options;
 			$properties[ $field_id ] = $field_schema;
 		}
 
