@@ -105,14 +105,7 @@ class REST_Controller extends \WP_REST_Posts_Controller {
 	 */
 	public function get_item_schema() {
 
-		$properties = array(
-			'id' => array(
-				'description' => __( 'Unique identifier for the object.', 'default' ),
-				'type' => 'integer',
-				'context' => array( 'view', 'edit', 'embed' ),
-				'readonly' => true,
-			),
-		);
+		$properties = array();
 
 		// @todo Why not just use arg_options to begin with in the Model?
 		foreach ( $this->plugin->model->get_item_schema_properties() as $field_id => $field_schema ) {
@@ -147,12 +140,7 @@ class REST_Controller extends \WP_REST_Posts_Controller {
 		setup_postdata( $post );
 
 		// Base fields for every post.
-		$data = array_merge(
-			array(
-				'id' => $post->ID, // @todo Let id just be included in get_item by default?
-			),
-			$this->plugin->model->get_item( $post )
-		);
+		$data = $this->plugin->model->get_item( $post );
 
 		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
 		$data = $this->filter_response_by_context( $data, $context );

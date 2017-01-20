@@ -104,11 +104,15 @@ class Customizer {
 
 		// @todo Should this register all of the settings or should they be fetched dynamically?
 		$items = $this->plugin->model->get_items();
-		foreach ( $items as $id => $item ) {
-			foreach ( array_keys( $item ) as $property_name ) {
+		$item_schema = $this->plugin->model->get_item_schema_properties();
+		foreach ( $items as $item ) {
+			foreach ( $item_schema as $field_id => $field_schema ) {
+				if ( ! empty( $field_schema['readonly'] ) ) {
+					continue;
+				}
 				$setting = new Featured_Item_Property_Customize_Setting( $wp_customize, array(
-					'post_id' => $id,
-					'property' => $property_name,
+					'post_id' => $item['id'],
+					'property' => $field_id,
 					'plugin' => $this->plugin,
 				) );
 				$wp_customize->add_setting( $setting );

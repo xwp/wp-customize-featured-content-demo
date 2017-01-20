@@ -58,6 +58,14 @@ class Model {
 		// @todo Add a flag for whether or not the value should be exposed as raw/rendered in the REST API? Add a render_callback?
 		// @todo Add get_links callback?
 		return array(
+			'id' => array(
+				'description' => __( 'Unique identifier for the object.', 'default' ),
+				'type' => 'integer',
+				'context' => array( 'view', 'edit', 'embed' ),
+				'readonly' => true,
+				'storage' => array( 'post', 'ID' ),
+				'default' => 0,
+			),
 			'related_post_id' => array( // @todo Remove the _id suffix.
 				'type' => 'integer',
 				'default' => 0,
