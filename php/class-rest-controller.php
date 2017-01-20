@@ -98,26 +98,91 @@ class REST_Controller extends \WP_REST_Posts_Controller {
 	}
 
 	/**
+	 * Computed item schema.
+	 *
+	 * @var array
+	 */
+	protected $_item_schema;
+
+	/**
 	 * Retrieves the item's schema, conforming to JSON Schema.
 	 *
 	 * @return array Item schema data.
 	 */
 	public function get_item_schema() {
-
-		$properties = array();
-
-		foreach ( $this->plugin->model->get_item_schema_properties() as $field_id => $field_schema ) {
-			$properties[ $field_id ] = $field_schema;
+		if ( ! isset( $this->_item_schema ) ) {
+			$this->_item_schema = array(
+				'$schema' => 'http://json-schema.org/schema#',
+				'title' => Model::POST_TYPE,
+				'type' => 'object',
+				'properties' => array_map(
+					array( $this, 'prepare_rest_item_field_schema' ),
+					$this->plugin->model->get_item_schema_properties()
+				),
+			);
 		}
+		return $this->_item_schema;
+	}
 
-		$schema = array(
-			'$schema' => 'http://json-schema.org/schema#',
-			'title' => Model::POST_TYPE,
-			'type' => 'object',
-			'properties' => $properties,
-		);
+	/**
+	 * Convert the model field schema into a REST field schema.
+	 *
+	 * @param array $model_field_schema Field schema from the model.
+	 * @return array Field schema prepared for REST controller.
+	 */
+	protected function prepare_rest_item_field_schema( $model_field_schema ) {
+		$rest_field_schema = $model_field_schema;
 
-		return $schema;
+		$rest_field_schema['arg_options']['validate_callback'] = function ( $value, $request, $key ) use ( $model_field_schema ) {
+			unset( $request );
+			if ( isset( $model_field_schema['arg_options']['validate_callback'] ) ) {
+				return call_user_func( $model_field_schema['arg_options']['validate_callback'], $value, $model_field_schema, $key );
+			} else {
+				return rest_validate_value_from_schema( $value, $model_field_schema, $key );
+			}
+		};
+
+		$rest_field_schema['arg_options']['sanitize_callback'] = function ( $value, $request, $key ) use ( $model_field_schema ) {
+			unset( $request, $key );
+			if ( isset( $model_field_schema['arg_options']['sanitize_callback'] ) ) {
+				return call_user_func( $model_field_schema['arg_options']['sanitize_callback'], $value, $model_field_schema );
+			} else {
+				return rest_sanitize_value_from_schema( $value, $model_field_schema );
+			}
+		};
+
+		// Allow scalar value to be supplied as well as raw/rendered object.
+		if ( isset( $rest_field_schema['arg_options']['rendering'] ) ) {
+			$raw_field_schema = $rest_field_schema;
+
+			$rest_field_schema = array(
+				'type' => array( 'string', 'object' ),
+				'properties' => array(
+					'raw' => $rest_field_schema,
+					'rendered' => array_merge(
+						$rest_field_schema,
+						array(
+							'readonly' => true,
+						)
+					),
+				),
+				'arg_options' => array(
+					'validate_callback' => function ( $value, $request, $field_id ) use ( $raw_field_schema ) {
+						if ( is_array( $value ) && isset( $value['raw'] ) ) {
+							$value = $value['raw'];
+						}
+						return call_user_func( $raw_field_schema['arg_options']['validate_callback'], $value, $request, $field_id );
+					},
+					'sanitize_callback' => function ( $value, $request, $field_id ) use ( $raw_field_schema ) {
+						if ( is_array( $value ) && isset( $value['raw'] ) ) {
+							$value = $value['raw'];
+						}
+						return call_user_func( $raw_field_schema['arg_options']['sanitize_callback'], $value, $request, $field_id );
+					},
+				),
+			);
+		}
+		return $rest_field_schema;
 	}
 
 	/**
@@ -128,18 +193,34 @@ class REST_Controller extends \WP_REST_Posts_Controller {
 	 * @return \WP_REST_Response Response object.
 	 */
 	public function prepare_item_for_response( $post, $request ) {
-		$GLOBALS['post'] = $post;
+		$model_item_schema = $this->plugin->model->get_item_schema_properties();
 
-		setup_postdata( $post );
-
-		// Base fields for every post.
-		$data = $this->plugin->model->get_item( $post );
+		$item = array();
+		$item_data = $this->plugin->model->get_item( $post );
+		foreach ( $model_item_schema as $field_id => $field_schema ) {
+			if ( isset( $field_schema['arg_options']['rendering'] ) ) {
+				$property = array(
+					'raw' => $item_data[ $field_id ],
+					'rendered' => $item_data[ $field_id ],
+				);
+				if ( isset( $field_schema['arg_options']['rendering']['callback'] ) ) {
+					$property['rendered'] = call_user_func(
+						$field_schema['arg_options']['rendering']['callback'],
+						$property['rendered'],
+						$post->ID
+					);
+				}
+			} else {
+				$property = $item_data[ $field_id ];
+			}
+			$item[ $field_id ] = $property;
+		}
 
 		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
-		$data = $this->filter_response_by_context( $data, $context );
+		$item = $this->filter_response_by_context( $item, $context );
 
 		// Wrap the data in a response object.
-		$response = rest_ensure_response( $data );
+		$response = rest_ensure_response( $item );
 
 		$response->add_links( $this->prepare_links( $post ) );
 
@@ -205,9 +286,13 @@ class REST_Controller extends \WP_REST_Posts_Controller {
 	 */
 	protected function prepare_item_for_database( $request ) {
 		$item = array();
+		$item_schema = $this->get_item_schema();
 		foreach ( $request->get_params() as $field_id => $field_value ) {
-			if ( is_array( $field_value ) && isset( $field_value['raw'] ) ) {
-				$field_value = $field_value['raw'];
+			$has_raw = isset( $item_schema['properties'][ $field_id ]['raw'] );
+			if ( $has_raw ) {
+				if ( is_array( $field_value ) && isset( $field_value['raw'] ) ) {
+					$field_value = $field_value['raw'];
+				}
 			}
 			$item[ $field_id ] = $field_value;
 		}

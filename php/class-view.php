@@ -43,6 +43,35 @@ class View {
 	}
 
 	/**
+	 * Get rendered title.
+	 *
+	 * @param string $title Raw title.
+	 * @param int    $id    Item (post) ID.
+	 * @return string Rendered title.
+	 */
+	public function get_rendered_title( $title, $id ) {
+
+		/** This filter is documented in wp-includes/post-template.php*/
+		return apply_filters( 'the_title', $title, $id );
+	}
+
+	/**
+	 * Get rendered excerpt.
+	 *
+	 * @param string $excerpt Raw excerpt.
+	 * @param int    $id      Item (post) ID.
+	 * @return string Rendered excerpt.
+	 */
+	public function get_rendered_excerpt( $excerpt, $id ) {
+		$post = get_post( $id );
+
+		/** This filter is documented in wp-includes/post-template.php */
+		$excerpt = apply_filters( 'the_excerpt', apply_filters( 'get_the_excerpt', $excerpt, $post ) );
+
+		return $excerpt;
+	}
+
+	/**
 	 * Render item.
 	 *
 	 * @param int $id Featured item ID.
@@ -52,6 +81,8 @@ class View {
 		if ( ! $item ) {
 			return;
 		}
+
+		$item_schema_properties = $this->plugin->model->get_item_schema_properties();
 
 		$related_post = ! empty( $item['related'] ) ? get_post( $item['related'] ) : null;
 		if ( $related_post ) {
@@ -68,21 +99,36 @@ class View {
 				$item['featured_media'] = get_post_thumbnail_id( $related_post );
 			}
 		}
+
+		$rendered_item = array();
+		foreach ( $item_schema_properties as $field_id => $field_schema ) {
+			if ( isset( $field_schema['arg_options']['rendering']['callback'] ) ) {
+				$render_callback = $field_schema['arg_options']['rendering']['callback'];
+				$rendered_item[ $field_id ] = call_user_func(
+					$render_callback,
+					$item[ $field_id ],
+					$id
+				);
+			} else {
+				$rendered_item[ $field_id ] = $item[ $field_id ];
+			}
+		}
+
 		?>
-		<li class="<?php echo esc_attr( "featured-content-item featured-content-item-$id" ); ?>" data-position="<?php echo esc_attr( $item['position'] ); ?>">
-			<?php if ( $item['url'] ) : ?>
-				<a class="title" href="<?php echo esc_url( $item['url'] ) ?>">
+		<li class="<?php echo esc_attr( "featured-content-item featured-content-item-$id" ); ?>" data-position="<?php echo esc_attr( $rendered_item['position'] ); ?>">
+			<?php if ( $rendered_item['url'] ) : ?>
+				<a class="title" href="<?php echo esc_url( $rendered_item['url'] ); ?>">
 			<?php else : ?>
 				<a class="title">
 			<?php endif; ?>
-				<?php echo wptexturize( esc_html( $item['title'] ) ); ?>
+				<?php echo $rendered_item['title']; // WPCS: XSS OK. ?>
 			</a>
-			<?php if ( $item['featured_media'] ) : ?>
-				<?php echo wp_get_attachment_image( $item['featured_media'], 'thumbnail' ) ?>
+			<?php if ( $rendered_item['featured_media'] ) : ?>
+				<?php echo wp_get_attachment_image( $rendered_item['featured_media'], 'thumbnail' ); ?>
 			<?php endif; ?>
-			<?php if ( $item['excerpt'] ) : ?>
+			<?php if ( $rendered_item['excerpt'] ) : ?>
 				<div class="description">
-					<?php echo wpautop( wptexturize( esc_html( $item['excerpt'] ) ) ); ?>
+					<?php echo $rendered_item['excerpt']; // WPCS: XSS OK. ?>
 				</div>
 			<?php endif; ?>
 		</li>

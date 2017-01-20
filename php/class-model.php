@@ -51,12 +51,17 @@ class Model {
 	/**
 	 * Get item schema properties.
 	 *
+	 * @todo Add prepare_links_callback?
+	 *
 	 * @return array
 	 */
 	public function get_item_schema_properties() {
-
-		// @todo Add a flag for whether or not the value should be exposed as raw/rendered in the REST API? Add a render_callback?
-		// @todo Add prepare_links_callback?
+		/*
+		 * Note: The sanitize and validate callbacks take argument signatures for
+		 * rest_sanitize_value_from_schema and rest_validate_value_from_schema
+		 * respectively. In the REST controller these callbacks will be wrapped
+		 * by callbacks that accept the WP_REST_Request.
+		 */
 		return array(
 			'id' => array(
 				'description' => __( 'Unique identifier for the object.', 'default' ),
@@ -138,10 +143,13 @@ class Model {
 				'type' => 'string',
 				'default' => '',
 				'arg_options' => array(
-					'sanitize_callback' => array( $this, 'sanitize_text' ),
 					'storage' => array(
 						'object' => 'post',
 						'key' => 'post_title',
+					),
+					'sanitize_callback' => array( $this, 'sanitize_title' ),
+					'rendering' => array(
+						'callback' => array( $this->plugin->view, 'get_rendered_title' ),
 					),
 				),
 			),
@@ -204,10 +212,13 @@ class Model {
 				'type' => 'string',
 				'default' => '',
 				'arg_options' => array(
-					'sanitize_callback' => array( $this, 'sanitize_text' ),
 					'storage' => array(
 						'object' => 'post',
 						'key' => 'post_excerpt',
+					),
+					'sanitize_callback' => array( $this, 'sanitize_excerpt' ),
+					'rendering' => array(
+						'callback' => array( $this->plugin->view, 'get_rendered_excerpt' ),
 					),
 				),
 			),
@@ -269,20 +280,39 @@ class Model {
 	}
 
 	/**
-	 * Validate and sanitize text.
+	 * Validate and sanitize title.
 	 *
 	 * @param string $value  The title text value.
 	 * @param array  $args   Schema array to use for validation.
 	 * @return string|\WP_Error
 	 */
-	public function sanitize_text( $value, $args ) {
+	public function sanitize_title( $value, $args ) {
 		$value = rest_sanitize_value_from_schema( $value, $args );
 
-		if ( preg_match( '#</?\w*.?>#s', $value ) ) {
+		if ( strip_tags( $value ) !== $value ) {
 			return new \WP_Error( 'invalid_title_markup', __( 'Markup is not allowed.', 'customize-featured-content-demo' ) );
 		}
 
 		$value = sanitize_text_field( $value );
+		return $value;
+	}
+
+	/**
+	 * Validate and sanitize excerpt.
+	 *
+	 * @param string $value  The excerpt text value.
+	 * @param array  $args   Schema array to use for validation.
+	 * @return string|\WP_Error
+	 */
+	public function sanitize_excerpt( $value, $args ) {
+		$value = rest_sanitize_value_from_schema( $value, $args );
+
+		if ( wp_kses_post( $value ) !== $value ) {
+			return new \WP_Error( 'illegal_markup', __( 'Illegal or malformed markup detected.', 'customize-featured-content-demo' ) );
+		}
+
+		$value = force_balance_tags( $value );
+
 		return $value;
 	}
 
