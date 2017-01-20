@@ -99,7 +99,7 @@ class Model {
 				'minimum' => 0,
 				'storage' => array( 'post', 'menu_order' ),
 			),
-			'title_text' => array( // @todo Rename to just 'title'.
+			'title' => array(
 				'type' => 'string',
 				'default' => '',
 				'sanitize_callback' => array( $this, 'sanitize_text' ),

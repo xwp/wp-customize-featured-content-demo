@@ -57,8 +57,8 @@ class View {
 		if ( ! $item['url'] && $related_post ) {
 			$item['url'] = get_permalink( $related_post->ID );
 		}
-		if ( ! $item['title_text'] && $related_post ) {
-			$item['title_text'] = $related_post->post_title;
+		if ( ! $item['title'] && $related_post ) {
+			$item['title'] = $related_post->post_title;
 		}
 		if ( ! $item['description_text'] && $related_post ) {
 			$item['description_text'] = $related_post->post_excerpt;
@@ -73,7 +73,7 @@ class View {
 			<?php else : ?>
 				<a class="title">
 			<?php endif; ?>
-				<?php echo wptexturize( esc_html( $item['title_text'] ) ); ?>
+				<?php echo wptexturize( esc_html( $item['title'] ) ); ?>
 			</a>
 			<?php if ( $item['featured_image_id'] ) : ?>
 				<?php echo wp_get_attachment_image( $item['featured_image_id'], 'thumbnail' ) ?>

@@ -102,7 +102,7 @@ class Customizer {
 			$this->manager->register_control_type( __NAMESPACE__ . '\WP_Customize_Dynamic_Control' );
 		}
 
-		// @todo Should this register all of the settings or should they be fetched dynamically?
+		// @todo Should this register all of the settings or should they be fetched dynamically via REST API call?
 		$items = $this->plugin->model->get_items();
 		$item_schema = $this->plugin->model->get_item_schema_properties();
 		foreach ( $items as $item ) {
@@ -195,12 +195,12 @@ class Customizer {
 		}
 
 		foreach ( $partial_settings as $partial_id => $settings ) {
-			$title_text_setting = $settings['title_text'];
+			$title_setting = $settings['title'];
 			$partial_args = array(
 				'type' => 'featured_item',
 				'plugin' => $this->plugin,
-				'selector' => sprintf( '.featured-content-item-%d', $title_text_setting->post_id ),
-				'primary_setting' => $title_text_setting->id,
+				'selector' => sprintf( '.featured-content-item-%d', $title_setting->post_id ),
+				'primary_setting' => $title_setting->id,
 				'settings' => array_values( wp_list_pluck( $settings, 'id' ) ),
 				'container_inclusive' => true,
 				'render_callback' => array( $this, 'render_item_partial' ),

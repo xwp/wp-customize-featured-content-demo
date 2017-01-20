@@ -30,7 +30,7 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 			url_label: '{missing_text:url_label}',
 			url_placeholder: '{missing_text:url_placeholder}',
 			related_post_id_placeholder: '{missing_text:related_post_id_placeholder}',
-			title_text_label: '{missing_text:title}',
+			title_label: '{missing_text:title}',
 			description_text_label: '{missing_text:description}',
 			position_label: '{missing_text:position}',
 			customize_action: '{missing_text:customize_action}'
@@ -43,7 +43,7 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 				'related_post_id',
 				'featured_image_id',
 				'url',
-				'title_text',
+				'title',
 				'description_text'
 			];
 			_.each( order, function( property, priority ) {
@@ -123,7 +123,7 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 			sectionOuterTitleElement = sectionContainer.find( '.accordion-section-title:first' );
 			sectionInnerTitleElement = sectionContainer.find( '.customize-section-title h3' ).first();
 			customizeActionElement = sectionInnerTitleElement.find( '.customize-action' ).first();
-			api( section.params.settingIdBase + '[title_text]', function( titleSetting ) {
+			api( section.params.settingIdBase + '[title]', function( titleSetting ) {
 				var setTitle = function( newTitle ) {
 					var title = $.trim( newTitle ) || section.l10n.no_title;
 					sectionOuterTitleElement.text( title );
@@ -234,12 +234,12 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 		 */
 		addTitleControl: function addTitleControl() {
 			var section = this, control, customizeId;
-			customizeId = section.params.settingIdBase + '[title_text]'; // Both the the ID for the control and the setting.
+			customizeId = section.params.settingIdBase + '[title]'; // Both the the ID for the control and the setting.
 			control = new api.controlConstructor.dynamic( customizeId, {
 				params: {
 					section: section.id,
-					priority: section.controlPriorities.title_text,
-					label: section.l10n.title_text_label,
+					priority: section.controlPriorities.title,
+					label: section.l10n.title_label,
 					active: true,
 					settings: {
 						'default': customizeId
