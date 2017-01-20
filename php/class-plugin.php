@@ -159,7 +159,7 @@ class Plugin {
 			'_.extend( wp.customize.sectionConstructor.featured_item.prototype.l10n, %s );',
 			wp_json_encode( array(
 				'no_title' => __( '(Untitled)', 'customize-featured-content-demo' ),
-				'featured_image_id_label' => __( 'Featured Image Override', 'customize-featured-content-demo' ),
+				'featured_media_label' => __( 'Featured Image Override', 'customize-featured-content-demo' ),
 				'featured_image_button_labels' => array(
 					'select'       => __( 'Select Image', 'customize-featured-content-demo' ),
 					'change'       => __( 'Change Image', 'customize-featured-content-demo' ),

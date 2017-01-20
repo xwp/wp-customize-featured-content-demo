@@ -64,8 +64,8 @@ class View {
 			if ( ! $item['excerpt'] ) {
 				$item['excerpt'] = $related_post->post_excerpt;
 			}
-			if ( ! $item['featured_image_id'] ) {
-				$item['featured_image_id'] = get_post_thumbnail_id( $related_post );
+			if ( ! $item['featured_media'] ) {
+				$item['featured_media'] = get_post_thumbnail_id( $related_post );
 			}
 		}
 		?>
@@ -77,8 +77,8 @@ class View {
 			<?php endif; ?>
 				<?php echo wptexturize( esc_html( $item['title'] ) ); ?>
 			</a>
-			<?php if ( $item['featured_image_id'] ) : ?>
-				<?php echo wp_get_attachment_image( $item['featured_image_id'], 'thumbnail' ) ?>
+			<?php if ( $item['featured_media'] ) : ?>
+				<?php echo wp_get_attachment_image( $item['featured_media'], 'thumbnail' ) ?>
 			<?php endif; ?>
 			<?php if ( $item['excerpt'] ) : ?>
 				<div class="description">

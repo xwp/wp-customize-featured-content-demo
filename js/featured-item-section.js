@@ -16,7 +16,7 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 		// This is overridden by \WP_Scripts::add_inline_script() PHP in Plugin::register_scripts().
 		l10n: {
 			no_title: '{missing_text:untitled}',
-			featured_image_id_label: '{missing_text:featured_image_id_label}',
+			featured_media_label: '{missing_text:featured_media_label}',
 			featured_image_button_labels: {
 				change: '{missing_text:featured_image_button_labels.change}',
 				'default': '{missing_text:featured_image_button_labels.default}',
@@ -41,7 +41,7 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 			var order, orderMapping = {};
 			order = [
 				'related_post_id',
-				'featured_image_id',
+				'featured_media',
 				'url',
 				'title',
 				'excerpt'
@@ -179,13 +179,13 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 		 */
 		addFeaturedImageControl: function addFeaturedImageControl() {
 			var section = this, control, customizeId;
-			customizeId = section.params.settingIdBase + '[featured_image_id]';
+			customizeId = section.params.settingIdBase + '[featured_media]';
 
 			control = new api.MediaControl( customizeId, {
 				params: {
 					section: section.id,
-					priority: section.controlPriorities.featured_image_id,
-					label: section.l10n.featured_image_id_label,
+					priority: section.controlPriorities.featured_media,
+					label: section.l10n.featured_media_label,
 					button_labels: section.l10n.featured_image_button_labels,
 					active: true,
 					canUpload: true,

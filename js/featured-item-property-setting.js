@@ -45,7 +45,7 @@ wp.customize.settingConstructor.featured_item_property = (function( api ) {
 			value = api.Setting.prototype.validate.call( setting, originalValue );
 
 			// Force an integer empty value (0) instead of an empty string when the media control removes the selected image.
-			if ( '' === value && 'featured_image_id' === setting.property ) {
+			if ( '' === value && 'featured_media' === setting.property ) {
 				value = 0;
 			}
 

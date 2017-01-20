@@ -86,7 +86,7 @@ class Model {
 				'validate_callback' => array( $this, 'validate_url' ),
 				'storage' => array( 'postmeta', 'url' ),
 			),
-			'featured_image_id' => array( // @todo Remove the _id suffix, and rename to featured_media to re-use core?
+			'featured_media' => array(
 				'type' => 'integer',
 				'default' => 0,
 				'minimum' => 0,
@@ -254,7 +254,7 @@ class Model {
 		if ( ! $post ) {
 			return new \WP_Error( 'invalid_post_id', __( 'Invalid post.', 'customize-featured-content-demo' ) );
 		}
-		if ( 'featured_image_id' === $property ) {
+		if ( 'featured_media' === $property ) {
 			if ( 'attachment' !== $post->post_type ) {
 				return new \WP_Error( 'invalid_attachment_post', __( 'Invalid attachment.', 'customize-featured-content-demo' ) );
 			} elseif ( ! preg_match( '#^image/#', get_post_mime_type( $post ) ) ) {
