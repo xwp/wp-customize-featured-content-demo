@@ -42,9 +42,9 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 			order = [
 				'related',
 				'featured_media',
-				'url',
 				'title',
-				'excerpt'
+				'excerpt',
+				'url'
 			];
 			_.each( order, function( property, priority ) {
 				orderMapping[ property ] = priority;
@@ -113,6 +113,8 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 		/**
 		 * Keep the title updated in the UI when the title updates in the setting.
 		 *
+		 * @todo Obtain the title from the related post?
+		 *
 		 * @returns {void}
 		 */
 		syncTitle: function syncTitle() {
@@ -155,7 +157,7 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 					},
 					field_type: 'select',
 					post_query_vars: {
-						post_type: [ 'post', 'page' ],
+						post_type: [ 'post' ],
 						post_status: 'publish'
 					},
 					show_add_buttons: false,
@@ -173,7 +175,7 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 		},
 
 		/**
-		 * Add title text control.
+		 * Add featured image control.
 		 *
 		 * @returns {wp.customize.Control} Added control.
 		 */
@@ -230,6 +232,8 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 		/**
 		 * Add title text control.
 		 *
+		 * @todo Add input placeholder to correspond to related post?
+		 *
 		 * @returns {wp.customize.Control} Added control.
 		 */
 		addTitleControl: function addTitleControl() {
@@ -259,6 +263,8 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 		/**
 		 * Add description text control.
 		 *
+		 * @todo Add input placeholder to correspond to related post?
+		 *
 		 * @returns {wp.customize.Control} Added control.
 		 */
 		addExcerptControl: function addExcerptControl() {
@@ -287,6 +293,8 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 
 		/**
 		 * Add URL control.
+		 *
+		 * @todo Add input placeholder to correspond to related post?
 		 *
 		 * @returns {wp.customize.Control} Added control.
 		 */
