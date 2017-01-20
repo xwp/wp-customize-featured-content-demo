@@ -65,7 +65,6 @@ class REST_Controller extends \WP_REST_Posts_Controller {
 			'schema' => array( $this, 'get_public_item_schema' ),
 		) );
 
-		$schema = $this->get_item_schema();
 		$get_item_args = array(
 			'context'  => $this->get_context_param( array( 'default' => 'view' ) ),
 		);
@@ -149,6 +148,20 @@ class REST_Controller extends \WP_REST_Posts_Controller {
 		$response = rest_ensure_response( $data );
 
 		$response->add_links( $this->prepare_links( $post ) );
+
+		$related_post = ! empty( $data['related'] ) ? get_post( $data['related'] ) : null;
+		if ( $related_post ) {
+			$post_type_obj = get_post_type_object( $related_post->post_type );
+			$rest_base = $post_type_obj && ! empty( $post_type_obj->rest_base ) ? $post_type_obj->rest_base : $related_post->post_type;
+			$response->add_links( array(
+				'related' => array(
+					array(
+						'href' => rest_url( sprintf( 'wp/v2/%s/%d', $rest_base, $related_post->ID ) ),
+						'embeddable' => true,
+					),
+				),
+			) );
+		}
 
 		return $response;
 	}

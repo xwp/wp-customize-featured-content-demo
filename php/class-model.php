@@ -67,12 +67,12 @@ class Model {
 				'storage' => array( 'post', 'ID' ),
 				'default' => 0,
 			),
-			'related_post' => array(
+			'related' => array(
 				'type' => 'integer',
 				'default' => 0,
 				'minimum' => 0,
 				'validate_callback' => array( $this, 'validate_post_id' ),
-				'storage' => array( 'postmeta', 'related_post' ),
+				'storage' => array( 'postmeta', 'related' ),
 			),
 			'status' => array(
 				'type' => 'string',

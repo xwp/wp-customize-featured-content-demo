@@ -26,10 +26,10 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 				frame_button: '{missing_text:featured_image_button_labels.frame_button}',
 				frame_title: '{missing_text:featured_image_button_labels.frame_title}'
 			},
-			related_post_label: '{missing_text:related_post_label}',
+			related_label: '{missing_text:related_label}',
 			url_label: '{missing_text:url_label}',
 			url_placeholder: '{missing_text:url_placeholder}',
-			related_post_placeholder: '{missing_text:related_post_placeholder}',
+			related_placeholder: '{missing_text:related_placeholder}',
 			title_label: '{missing_text:title}',
 			excerpt_label: '{missing_text:description}',
 			position_label: '{missing_text:position}',
@@ -40,7 +40,7 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 		controlPriorities: (function() {
 			var order, orderMapping = {};
 			order = [
-				'related_post',
+				'related',
 				'featured_media',
 				'url',
 				'title',
@@ -142,13 +142,13 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 		 */
 		addRelatedPostControl: function addRelatedPostControl() {
 			var section = this, control, customizeId;
-			customizeId = section.params.settingIdBase + '[related_post]'; // Both the the ID for the control and the setting.
+			customizeId = section.params.settingIdBase + '[related]'; // Both the the ID for the control and the setting.
 
 			control = new api.controlConstructor.object_selector( customizeId, {
 				params: {
 					section: section.id,
-					priority: section.controlPriorities.related_post,
-					label: section.l10n.related_post_label,
+					priority: section.controlPriorities.related,
+					label: section.l10n.related_label,
 					active: true,
 					settings: {
 						'default': customizeId
@@ -162,7 +162,7 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 					select2_options: {
 						multiple: false,
 						allowClear: true,
-						placeholder: section.l10n.related_post_placeholder
+						placeholder: section.l10n.related_placeholder
 					}
 				}
 			} );
