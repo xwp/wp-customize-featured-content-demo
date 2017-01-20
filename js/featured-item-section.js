@@ -31,7 +31,7 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 			url_placeholder: '{missing_text:url_placeholder}',
 			related_post_id_placeholder: '{missing_text:related_post_id_placeholder}',
 			title_label: '{missing_text:title}',
-			description_text_label: '{missing_text:description}',
+			excerpt_label: '{missing_text:description}',
 			position_label: '{missing_text:position}',
 			customize_action: '{missing_text:customize_action}'
 		},
@@ -44,7 +44,7 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 				'featured_image_id',
 				'url',
 				'title',
-				'description_text'
+				'excerpt'
 			];
 			_.each( order, function( property, priority ) {
 				orderMapping[ property ] = priority;
@@ -263,12 +263,12 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 		 */
 		addExcerptControl: function addExcerptControl() {
 			var section = this, control, customizeId;
-			customizeId = section.params.settingIdBase + '[description_text]'; // Both the the ID for the control and the setting.
+			customizeId = section.params.settingIdBase + '[excerpt]'; // Both the the ID for the control and the setting.
 			control = new api.controlConstructor.dynamic( customizeId, {
 				params: {
 					section: section.id,
-					priority: section.controlPriorities.description_text,
-					label: section.l10n.description_text_label,
+					priority: section.controlPriorities.excerpt,
+					label: section.l10n.excerpt_label,
 					active: true,
 					settings: {
 						'default': customizeId

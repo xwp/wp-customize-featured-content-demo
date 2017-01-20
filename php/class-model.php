@@ -134,40 +134,40 @@ class Model {
 				'default' => 0,
 				'storage' => array( 'postmeta', 'title_left' ),
 			),
-			'description_text' => array( // @todo Rename to just 'description' or rather just 'excerpt'.
+			'excerpt' => array(
 				'type' => 'string',
 				'default' => '',
 				'sanitize_callback' => array( $this, 'sanitize_text' ),
 				'storage' => array( 'post', 'post_excerpt' ),
 			),
-			'description_color' => array(
+			'excerpt_color' => array(
 				'type' => 'string',
 				'default' => '',
 				'validate_callback' => array( $this, 'validate_color' ),
-				'storage' => array( 'postmeta', 'description_color' ),
+				'storage' => array( 'postmeta', 'excerpt_color' ),
 			),
-			'description_background' => array(
+			'excerpt_background' => array(
 				'type' => 'string',
 				'default' => '',
 				'validate_callback' => array( $this, 'validate_color' ),
-				'storage' => array( 'postmeta', 'description_background' ),
+				'storage' => array( 'postmeta', 'excerpt_background' ),
 			),
-			'description_font_size' => array(
+			'excerpt_font_size' => array(
 				'type' => 'integer',
 				'default' => 20,
 				'minimum' => 8,
 				'maximum' => 100,
-				'storage' => array( 'postmeta', 'description_font_size' ),
+				'storage' => array( 'postmeta', 'excerpt_font_size' ),
 			),
-			'description_top' => array(
+			'excerpt_top' => array(
 				'type' => 'integer',
 				'default' => 0,
-				'storage' => array( 'postmeta', 'description_top' ),
+				'storage' => array( 'postmeta', 'excerpt_top' ),
 			),
-			'description_left' => array(
+			'excerpt_left' => array(
 				'type' => 'integer',
 				'default' => 0,
-				'storage' => array( 'postmeta', 'description_left' ),
+				'storage' => array( 'postmeta', 'excerpt_left' ),
 			),
 		);
 	}

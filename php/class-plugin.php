@@ -174,7 +174,7 @@ class Plugin {
 				'related_post_id_label' => __( 'Related item (Optional)', 'customize-featured-content-demo' ),
 				'related_post_id_placeholder' => __( 'Search items', 'customize-featured-content-demo' ),
 				'title_label' => __( 'Title (Override)', 'customize-featured-content-demo' ),
-				'description_text_label' => __( 'Description (Override)', 'customize-featured-content-demo' ),
+				'excerpt_label' => __( 'Description (Override)', 'customize-featured-content-demo' ),
 				'position_label' => __( 'Position', 'customize-featured-content-demo' ),
 				'customize_action' => __( 'Customizing featured item:', 'customize-featured-content-demo' ),
 			) )

@@ -60,8 +60,8 @@ class View {
 		if ( ! $item['title'] && $related_post ) {
 			$item['title'] = $related_post->post_title;
 		}
-		if ( ! $item['description_text'] && $related_post ) {
-			$item['description_text'] = $related_post->post_excerpt;
+		if ( ! $item['excerpt'] && $related_post ) {
+			$item['excerpt'] = $related_post->post_excerpt;
 		}
 		if ( ! $item['featured_image_id'] && $related_post ) {
 			$item['featured_image_id'] = get_post_thumbnail_id( $related_post );
@@ -78,9 +78,9 @@ class View {
 			<?php if ( $item['featured_image_id'] ) : ?>
 				<?php echo wp_get_attachment_image( $item['featured_image_id'], 'thumbnail' ) ?>
 			<?php endif; ?>
-			<?php if ( $item['description_text'] ) : ?>
+			<?php if ( $item['excerpt'] ) : ?>
 				<div class="description">
-					<?php echo wpautop( wptexturize( esc_html( $item['description_text'] ) ) ); ?>
+					<?php echo wpautop( wptexturize( esc_html( $item['excerpt'] ) ) ); ?>
 				</div>
 			<?php endif; ?>
 		</li>
