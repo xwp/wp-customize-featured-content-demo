@@ -55,6 +55,7 @@ class Model {
 	 */
 	public function get_item_schema_properties() {
 
+		// @todo Add descriptions.
 		// @todo Add a flag for whether or not the value should be exposed as raw/rendered in the REST API? Add a render_callback?
 		// @todo Add get_links callback?
 		return array(
@@ -66,12 +67,12 @@ class Model {
 				'storage' => array( 'post', 'ID' ),
 				'default' => 0,
 			),
-			'related_post_id' => array( // @todo Remove the _id suffix.
+			'related_post' => array(
 				'type' => 'integer',
 				'default' => 0,
 				'minimum' => 0,
 				'validate_callback' => array( $this, 'validate_post_id' ),
-				'storage' => array( 'postmeta', 'related_post_id' ),
+				'storage' => array( 'postmeta', 'related_post' ),
 			),
 			'status' => array(
 				'type' => 'string',

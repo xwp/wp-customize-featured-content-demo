@@ -53,7 +53,7 @@ class View {
 			return;
 		}
 
-		$related_post = ! empty( $item['related_post_id'] ) ? get_post( $item['related_post_id'] ) : null;
+		$related_post = ! empty( $item['related_post'] ) ? get_post( $item['related_post'] ) : null;
 		if ( $related_post ) {
 			if ( ! $item['url'] ) {
 				$item['url'] = get_permalink( $related_post->ID );

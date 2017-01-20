@@ -195,12 +195,12 @@ class Customizer {
 		}
 
 		foreach ( $partial_settings as $partial_id => $settings ) {
-			$title_setting = $settings['title'];
+			$related_post_setting = $settings['related_post'];
 			$partial_args = array(
 				'type' => 'featured_item',
 				'plugin' => $this->plugin,
-				'selector' => sprintf( '.featured-content-item-%d', $title_setting->post_id ),
-				'primary_setting' => $title_setting->id,
+				'selector' => sprintf( '.featured-content-item-%d', $related_post_setting->post_id ),
+				'primary_setting' => $related_post_setting->id, // First control in section is for related post, so this will get focused via edit shortcut.
 				'settings' => array_values( wp_list_pluck( $settings, 'id' ) ),
 				'container_inclusive' => true,
 				'render_callback' => array( $this, 'render_item_partial' ),
