@@ -21,12 +21,12 @@ wp.customize.settingConstructor.featured_item_property = (function( api ) {
 		 * @param {object} params  Params.
 		 * @returns {void}
 		 */
-		initialize: function( id, value, params ) {
+		initialize: function initialize( id, value, params ) {
 			var setting = this, idParts;
 			api.Setting.prototype.initialize.call( setting, id, value, params );
 
 			idParts = id.replace( /]/g, '' ).split( /\[/ );
-			if ( 'featured_item_property' !== idParts[0] || 3 !== idParts.length ) {
+			if ( 'featured_item' !== idParts[0] || 3 !== idParts.length ) {
 				throw new Error( 'Unexpected id for featured_item_property setting.' );
 			}
 			setting.postId = parseInt( idParts[1], 10 );

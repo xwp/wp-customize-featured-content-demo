@@ -94,9 +94,6 @@ class Customizer {
 	public function register( \WP_Customize_Manager $wp_customize ) {
 		$this->manager = $wp_customize;
 
-		// Register panel type so that templates will be printed. Core should do this by default for any added panel.
-		$this->manager->register_panel_type( __NAMESPACE__ . '\\Featured_Items_Customize_Panel' );
-
 		// Register the dynamic control type if it is not already registered by Customize Posts.
 		if ( ! class_exists( '\WP_Customize_Dynamic_Control' ) ) {
 			$this->manager->register_control_type( __NAMESPACE__ . '\WP_Customize_Dynamic_Control' );
@@ -110,7 +107,7 @@ class Customizer {
 				if ( ! empty( $field_schema['readonly'] ) ) {
 					continue;
 				}
-				$setting = new Featured_Item_Property_Customize_Setting( $wp_customize, array(
+				$setting = new Featured_Item_Property_Customize_Setting( $wp_customize, null, array(
 					'post_id' => $item['id'],
 					'property' => $field_id,
 					'plugin' => $this->plugin,
@@ -118,13 +115,42 @@ class Customizer {
 				$wp_customize->add_setting( $setting );
 			}
 		}
-		add_filter( 'customize_sanitize_nav_menus_created_posts', array( $this, 'filter_nav_menus_created_posts_setting' ) );
 
 		// Note that sections will by dynamically added via JS.
-		$panel = new Featured_Items_Customize_Panel( $this->manager, 'featured_items', array(
+		$panel = new Featured_Items_Customize_Panel( $this->plugin, $this->manager, 'featured_items', array(
 			'title' => __( 'Featured Items', 'customize-featured-content-demo' ),
 		) );
+
+		/*
+		 * Note that this is done instead of registering Featured_Items_Customize_Panel
+		 * via WP_Customize_Manager::register_panel_type() because it doesn't allow
+		 * passing in a pre-instantiated object which means that constructor dependency
+		 * injection will fail. Core should iterate over all of the registered panels
+		 * and call print_template() on each unique class type.
+		 */
+		add_action( 'customize_controls_print_footer_scripts', array( $panel, 'print_template' ) );
+
 		$wp_customize->add_panel( $panel );
+	}
+
+	/**
+	 * Get params for item property settings.
+	 *
+	 * @see WP_Customize_Setting::json()
+	 * @returns array Default params for each setting.
+	 */
+	public function get_default_item_property_setting_params() {
+		$setting_params = array();
+		foreach ( $this->plugin->model->get_item_schema_properties() as $field_id => $field_schema ) {
+			if ( ! empty( $field_schema['readonly'] ) ) {
+				continue;
+			}
+			$params = Featured_Item_Property_Customize_Setting::$default_args;
+			$params['type'] = Featured_Item_Property_Customize_Setting::TYPE;
+			$params['value'] = isset( $field_schema['default'] ) ? $field_schema['default'] : null;
+			$setting_params[ $field_id ] = $params;
+		}
+		return $setting_params;
 	}
 
 	/**
@@ -189,7 +215,7 @@ class Customizer {
 		$partial_settings = array();
 		foreach ( $this->manager->settings() as $setting ) {
 			if ( $setting instanceof Featured_Item_Property_Customize_Setting ) {
-				$partial_id = sprintf( '%s[%d]', Featured_Item_Property_Customize_Setting::TYPE, $setting->post_id );
+				$partial_id = sprintf( 'featured_item[%d]', $setting->post_id );
 				$partial_settings[ $partial_id ][ $setting->property ] = $setting;
 			}
 		}

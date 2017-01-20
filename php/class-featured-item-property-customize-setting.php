@@ -20,6 +20,15 @@ class Featured_Item_Property_Customize_Setting extends \WP_Customize_Setting {
 	const ID_PATTERN = '/^featured_item\[(?P<post_id>\d+)\]\[(?P<property>\w+)\]$/Ds';
 
 	/**
+	 * Default args.
+	 *
+	 * @var array
+	 */
+	public static $default_args = array(
+		'transport' => 'postMessage',
+	);
+
+	/**
 	 * Plugin instance.
 	 *
 	 * @var Plugin
@@ -45,7 +54,7 @@ class Featured_Item_Property_Customize_Setting extends \WP_Customize_Setting {
 	 *
 	 * @var string
 	 */
-	public $transport = 'postMessage';
+	public $transport;
 
 	/**
 	 * Setting constructor.
@@ -53,9 +62,10 @@ class Featured_Item_Property_Customize_Setting extends \WP_Customize_Setting {
 	 * @throws \Exception If if invalid args provided.
 	 *
 	 * @param \WP_Customize_Manager $manager Customize manager.
+	 * @param string|null           $id      Setting ID. If empty will be computed from $args.
 	 * @param array                 $args    Setting arguments.
 	 */
-	public function __construct( $manager, $args ) {
+	public function __construct( $manager, $id, $args ) {
 		if ( ! isset( $args['plugin'] ) || ! ( $args['plugin'] instanceof Plugin ) ) {
 			throw new \Exception( 'Missing plugin arg.' );
 		}
@@ -63,15 +73,23 @@ class Featured_Item_Property_Customize_Setting extends \WP_Customize_Setting {
 		if ( empty( $args['post_id'] ) ) {
 			throw new \Exception( 'Missing post_id arg' );
 		}
+		$args['post_id'] = intval( $args['post_id'] );
 		if ( empty( $args['property'] ) ) {
 			throw new \Exception( 'Missing property arg' );
 		}
+		$default_args = static::$default_args;
 		if ( isset( $default_item[ $args['property'] ]['default'] ) ) {
-			$args['default'] = $default_item[ $args['property'] ]['default'];
+			$default_args['default'] = $default_item[ $args['property'] ]['default'];
 		}
+		$args = array_merge( static::$default_args, $args );
 		$args['type'] = static::TYPE;
 		$setting_id = static::get_setting_id( $args['post_id'], $args['property'] );
-		parent::__construct( $manager, $setting_id, $args );
+		if ( empty( $id ) ) {
+			$id = $setting_id;
+		} elseif ( $setting_id !== $id ) {
+			throw new \Exception( "Unexpected setting ID: $setting_id" );
+		}
+		parent::__construct( $manager, $id, $args );
 	}
 
 	/**
@@ -82,7 +100,7 @@ class Featured_Item_Property_Customize_Setting extends \WP_Customize_Setting {
 	 * @return string Setting ID.
 	 */
 	static public function get_setting_id( $post_id, $property_name ) {
-		return sprintf( '%s[%d][%s]', Featured_Item_Property_Customize_Setting::TYPE, $post_id, $property_name );
+		return sprintf( 'featured_item[%d][%s]', $post_id, $property_name );
 	}
 
 	/**
@@ -122,6 +140,8 @@ class Featured_Item_Property_Customize_Setting extends \WP_Customize_Setting {
 
 	/**
 	 * Filter the item when previewed.
+	 *
+	 * @todo The filtering could be more efficient.
 	 *
 	 * @param array $item Item properties.
 	 * @param int   $id   Item ID.

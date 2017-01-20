@@ -22,6 +22,26 @@ class Featured_Items_Customize_Panel extends \WP_Customize_Panel {
 	public $type = 'featured_items';
 
 	/**
+	 * Plugin instance.
+	 *
+	 * @var Plugin
+	 */
+	public $plugin;
+
+	/**
+	 * Constructor.
+	 *
+	 * @param Plugin                $plugin  Plugin instance.
+	 * @param \WP_Customize_Manager $manager Customizer bootstrap instance.
+	 * @param string                $id      An specific ID for the panel.
+	 * @param array                 $args    Panel arguments.
+	 */
+	public function __construct( Plugin $plugin, \WP_Customize_Manager $manager, $id, array $args = array() ) {
+		$this->plugin = $plugin;
+		parent::__construct( $manager, $id, $args );
+	}
+
+	/**
 	 * Render the panel's JS templates.
 	 */
 	public function print_template() {
@@ -39,5 +59,25 @@ class Featured_Items_Customize_Panel extends \WP_Customize_Panel {
 			</div>
 		</script>
 		<?php
+	}
+
+	/**
+	 * Gather the parameters passed to client JavaScript via JSON.
+	 *
+	 * Note that this could alternatively be done via:
+	 *
+	 * <code>
+	 * wp_add_inline_script( 'customize-featured-items-panel', sprintf(
+	 *    '_.extend( wp.customize.panelConstructor.featured_items.prototype.defaultItemProperties, %s );',
+	 *    wp_json_encode( $this->plugin->model->get_default_item() )
+	 * ) );
+	 * </code>
+	 *
+	 * @return array The array to be exported to the client as JSON.
+	 */
+	public function json() {
+		$exported = parent::json();
+		$exported['default_item_property_setting_params'] = $this->plugin->customizer->get_default_item_property_setting_params();
+		return $exported;
 	}
 }
