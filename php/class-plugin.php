@@ -43,6 +43,13 @@ class Plugin {
 	public $customizer;
 
 	/**
+	 * REST Controller.
+	 *
+	 * @var REST_Controller
+	 */
+	public $rest_controller;
+
+	/**
 	 * Plugin constructor.
 	 */
 	public function __construct() {

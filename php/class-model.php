@@ -54,8 +54,11 @@ class Model {
 	 * @return array
 	 */
 	public function get_item_schema_properties() {
+
+		// @todo Add a flag for whether or not the value should be exposed as raw/rendered in the REST API? Add a render_callback?
+		// @todo Add get_links callback?
 		return array(
-			'related_post_id' => array(
+			'related_post_id' => array( // @todo Remove the _id suffix.
 				'type' => 'integer',
 				'default' => 0,
 				'minimum' => 0,
@@ -65,7 +68,7 @@ class Model {
 			'status' => array(
 				'type' => 'string',
 				'default' => 'publish',
-				'enum' => array( 'publish', 'trash' ),
+				'enum' => array( 'auto-draft', 'publish', 'trash' ),
 				'storage' => array( 'post', 'post_status' ),
 			),
 			'url' => array(
@@ -75,7 +78,7 @@ class Model {
 				'validate_callback' => array( $this, 'validate_url' ),
 				'storage' => array( 'postmeta', 'url' ),
 			),
-			'featured_image_id' => array(
+			'featured_image_id' => array( // @todo Remove the _id suffix, and rename to featured_media to re-use core?
 				'type' => 'integer',
 				'default' => 0,
 				'minimum' => 0,
@@ -88,7 +91,7 @@ class Model {
 				'minimum' => 0,
 				'storage' => array( 'post', 'menu_order' ),
 			),
-			'title_text' => array(
+			'title_text' => array( // @todo Rename to just 'title'.
 				'type' => 'string',
 				'default' => '',
 				'sanitize_callback' => array( $this, 'sanitize_text' ),
@@ -123,7 +126,7 @@ class Model {
 				'default' => 0,
 				'storage' => array( 'postmeta', 'title_left' ),
 			),
-			'description_text' => array(
+			'description_text' => array( // @todo Rename to just 'description' or rather just 'excerpt'.
 				'type' => 'string',
 				'default' => '',
 				'sanitize_callback' => array( $this, 'sanitize_text' ),
@@ -268,8 +271,12 @@ class Model {
 			'query_var' => false,
 			'delete_with_user' => false,
 			'can_export' => true,
-			'supports' => array( 'title', 'excerpt' ),
-			'capability_type' => 'page',
+			'supports' => array( 'title', 'excerpt', 'thumbnail' ),
+			'capability_type' => 'page', // Allow anyone who can manage pages to manage featured items.
+			'show_in_rest' => true,
+			'rest_base' => 'featured-items',
+			'rest_controller_class' => __NAMESPACE__ . '\\REST_Controller',
+			'plugin' => $this->plugin, // Hack since WP_REST_Controller doesn't facilitate constructor dependency injection.
 		) );
 	}
 
@@ -289,12 +296,17 @@ class Model {
 	 * @return array|false Item properties or false if the item does not exist (or was deleted).
 	 */
 	public function get_item( $id ) {
+		if ( empty( $id ) ) {
+			return false;
+		}
 		$post = get_post( $id );
 		if ( ! $post || static::POST_TYPE !== $post->post_type ) {
 			return false;
 		}
 
-		$item = array();
+		$item = array(
+			'id' => $post->ID,
+		);
 		foreach ( $this->get_item_schema_properties() as $field_id => $field_schema ) {
 			if ( 'post' === $field_schema['storage'][0] ) {
 				$post_field = $field_schema['storage'][1];
