@@ -193,6 +193,9 @@ class REST_Controller extends \WP_REST_Posts_Controller {
 	 * @return \WP_REST_Response Response object.
 	 */
 	public function prepare_item_for_response( $post, $request ) {
+		$GLOBALS['post'] = $post;
+		setup_postdata( $post ); // Needed for some filters that apply.
+
 		$model_item_schema = $this->plugin->model->get_item_schema_properties();
 
 		$item = array();
@@ -238,6 +241,7 @@ class REST_Controller extends \WP_REST_Posts_Controller {
 			) );
 		}
 
+		wp_reset_postdata();
 		return $response;
 	}
 

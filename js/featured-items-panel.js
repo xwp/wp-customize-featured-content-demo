@@ -42,7 +42,7 @@ wp.customize.panelConstructor.featured_items = (function( api, $ ) {
 			button = container.find( 'button' );
 			additionFailure = container.find( '.addition-failure' );
 			button.on( 'click', function() {
-				var promise = panel.createItem();
+				var promise = panel.createAutoDraftItem();
 				button.prop( 'disabled', true );
 				button.addClass( 'progress' );
 				additionFailure.slideUp();
@@ -77,12 +77,27 @@ wp.customize.panelConstructor.featured_items = (function( api, $ ) {
 		 *
 		 * @returns {jQuery.promise} Promise.
 		 */
-		createItem: function createItem() {
-			var deferred = $.Deferred();
+		createAutoDraftItem: function createAutoDraftItem() {
+			var deferred = $.Deferred(), reject;
 
-			setTimeout( function() {
+			reject = function() {
 				deferred.reject();
-			}, 1000 ); // eslint-disable-line no-magic-numbers
+			};
+
+			wp.api.init().fail( reject ).done( function() {
+				var FeaturedItem, item;
+				if ( ! wp.api.models['Featured-items'] ) {
+					reject();
+				}
+				FeaturedItem = wp.api.models['Featured-items']; // @todo Add better mapping.
+				item = new FeaturedItem();
+				item.save( { status: 'auto-draft' }, {
+					success: function( savedItem ) {
+						deferred.resolve( savedItem.id );
+					},
+					error: reject
+				} );
+			} );
 
 			return deferred.promise();
 		},
