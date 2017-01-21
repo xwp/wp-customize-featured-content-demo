@@ -35,6 +35,13 @@ wp.customize.panelConstructor.featured_items = (function( api, $ ) {
 			api.bind( 'ready', function() { // Because api.state is not read until then.
 				panel.handleChagesetPublish();
 			} );
+
+			// @todo Core should be doing this automatically. See <https://core.trac.wordpress.org/ticket/39663>.
+			panel.active.bind( function( isActive ) {
+				if ( ! isActive ) {
+					panel.collapse();
+				}
+			} );
 		},
 
 		/**

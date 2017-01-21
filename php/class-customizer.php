@@ -107,7 +107,8 @@ class Customizer {
 				if ( ! empty( $field_schema['readonly'] ) ) {
 					continue;
 				}
-				$setting = new Featured_Item_Property_Customize_Setting( $wp_customize, null, array(
+				$setting_id = null; // This setting type will compute the setting based on the post_id and property args.
+				$setting = new Featured_Item_Property_Customize_Setting( $wp_customize, $setting_id, array(
 					'post_id' => $item['id'],
 					'property' => $field_id,
 					'plugin' => $this->plugin,
@@ -117,8 +118,9 @@ class Customizer {
 		}
 
 		// Note that sections will by dynamically added via JS.
-		$panel = new Featured_Items_Customize_Panel( $this->plugin, $this->manager, 'featured_items', array(
+		$panel = new Featured_Items_Customize_Panel( $this->manager, 'featured_items', array(
 			'title' => __( 'Featured Items', 'customize-featured-content-demo' ),
+			'plugin' => $this->plugin,
 		) );
 
 		/*

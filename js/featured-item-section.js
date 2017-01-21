@@ -76,6 +76,11 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 			);
 
 			api.Section.prototype.initialize.call( section, id, args );
+
+			// Sync active state with panel since sections are dynamic.
+			api.panel( section.panel(), function( panel ) {
+				section.active.link( panel.active );
+			} );
 		},
 
 		/**

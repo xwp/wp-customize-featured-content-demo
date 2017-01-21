@@ -22,6 +22,17 @@ class View {
 	public $plugin;
 
 	/**
+	 * Number of times the items were rendered.
+	 *
+	 * This is used by the active callback for the featured_items panel to
+	 * determine whether or not it is contextual to the current preview.
+	 *
+	 * @see Featured_Items_Customize_Panel::active_callback()
+	 * @var int
+	 */
+	public $render_items_count = 0;
+
+	/**
 	 * Plugin constructor.
 	 *
 	 * @param Plugin $plugin Plugin instance.
@@ -34,6 +45,7 @@ class View {
 	 * Render items.
 	 */
 	public function render_items() {
+		$this->render_items_count += 1;
 		echo '<ul class="featured-content-items">';
 		$item_ids = array_keys( $this->plugin->model->get_items() );
 		foreach ( $item_ids as $item_id ) {
