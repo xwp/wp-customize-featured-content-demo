@@ -25,9 +25,7 @@ wp.customize.featuredContent.preview = (function( api ) {
 	 *
 	 * @returns {void}
 	 */
-	component.ready = function previewReady() {
-		console.info( 'Preview ready.' );
-	};
+	component.ready = function previewReady() {};
 
 	return component;
 

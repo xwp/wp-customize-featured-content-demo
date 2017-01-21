@@ -45,7 +45,8 @@ class Customizer {
 		add_action( 'customize_register', array( $this, 'register' ), $priority );
 		add_filter( 'customize_dynamic_setting_args', array( $this, 'filter_customize_dynamic_setting_args' ), 10, 2 );
 		add_filter( 'customize_dynamic_setting_class', array( $this, 'filter_customize_dynamic_setting_class' ), 10, 3 );
-		add_action( 'customize_register', array( $this, 'add_partials' ), 100 );
+		add_filter( 'customize_dynamic_partial_args', array( $this, 'filter_customize_dynamic_partial_args' ), 10, 2 );
+		add_filter( 'customize_dynamic_partial_class', array( $this, 'filter_customize_dynamic_partial_class' ), 10, 3 );
 		add_action( 'customize_preview_init', array( $this, 'preview_items_list' ) );
 
 		add_action( 'customize_controls_enqueue_scripts', array( $this, 'enqueue_pane_dependencies' ) );
@@ -71,6 +72,13 @@ class Customizer {
 			wp_enqueue_script( $handle );
 			wp_add_inline_script( $handle, 'wp.customize.featuredContent.preview.initialize();' );
 			wp_enqueue_style( $handle );
+
+			$handle = 'customize-featured-item-partial';
+			$js = sprintf(
+				'wp.customize.selectiveRefresh.partialConstructor.featured_item.prototype.settingProperties = %s;',
+				wp_json_encode( array_keys( $this->get_default_item_property_setting_params() ) )
+			);
+			wp_add_inline_script( $handle, $js );
 		}
 	}
 
@@ -191,60 +199,6 @@ class Customizer {
 	}
 
 	/**
-	 * Add partials for featured items.
-	 *
-	 * Note that there is no need to register filters for dynamic partials because
-	 * partials will be registered after all settings are registered, and
-	 * the presence of a featured item setting will cause the featured item partial
-	 * to be created.
-	 *
-	 * If the featured_item settings aren't registered on the PHP side with each
-	 * request, and if the settings are added dynamically with JS via lazy-loading,
-	 * the partials would need to be registered dynamically in JS instead
-	 * in response to syncing of settings to the preview.
-	 */
-	function add_partials() {
-		$partial_settings = array();
-		foreach ( $this->manager->settings() as $setting ) {
-			if ( $setting instanceof Featured_Item_Property_Customize_Setting ) {
-				$partial_id = sprintf( 'featured_item[%d]', $setting->post_id );
-				$partial_settings[ $partial_id ][ $setting->property ] = $setting;
-			}
-		}
-
-		// @todo There needs to be a better way to get a list of the partials to register.
-		foreach ( $partial_settings as $partial_id => $settings ) {
-			if ( ! isset( $settings['status'] ) || 'trash' === $settings['status']->value() ) {
-				continue;
-			}
-
-			$related_setting = $settings['related'];
-			$partial_args = array(
-				'type' => 'featured_item',
-				'plugin' => $this->plugin,
-				'selector' => sprintf( '.featured-content-item-%d', $related_setting->post_id ),
-				'primary_setting' => $related_setting->id, // First control in section is for related post, so this will get focused via edit shortcut.
-				'settings' => array_values( wp_list_pluck( $settings, 'id' ) ),
-				'container_inclusive' => true,
-				'render_callback' => array( $this, 'render_item_partial' ),
-			);
-			$this->manager->selective_refresh->add_partial( $partial_id, $partial_args );
-		}
-	}
-
-	/**
-	 * Render item partial.
-	 *
-	 * @param \WP_Customize_Partial $partial Partial.
-	 */
-	public function render_item_partial( \WP_Customize_Partial $partial ) {
-		$setting = $partial->component->manager->get_setting( $partial->primary_setting );
-		if ( $setting instanceof Featured_Item_Property_Customize_Setting ) {
-			$this->plugin->view->render_item( $setting->post_id );
-		}
-	}
-
-	/**
 	 * Add recognition for dynamically-created featured item settings.
 	 *
 	 * @param false|array $setting_args The arguments to the WP_Customize_Setting constructor.
@@ -273,8 +227,8 @@ class Customizer {
 	 * Assign WP_Customize_Setting subclass to be used for the featured items.
 	 *
 	 * @param string $setting_class WP_Customize_Setting or a subclass.
-	 * @param string $setting_id    ID for dynamic setting, usually coming from `$_POST['customized']`.
-	 * @param array  $setting_args  WP_Customize_Setting or a subclass.
+	 * @param string $setting_id    ID for dynamic setting.
+	 * @param array  $setting_args  Setting args.
 	 * @return string Class name.
 	 */
 	public function filter_customize_dynamic_setting_class( $setting_class, $setting_id, $setting_args ) {
@@ -283,5 +237,46 @@ class Customizer {
 			$setting_class = __NAMESPACE__ . '\\Featured_Item_Property_Customize_Setting';
 		}
 		return $setting_class;
+	}
+
+	/**
+	 * Add recognition for dynamically-created featured item partials.
+	 *
+	 * @param false|array $partial_args The arguments to the WP_Customize_Setting constructor.
+	 * @param string      $partial_id   ID for dynamic partial.
+	 * @return array|false Partial args or `false` if the `$partial_id` was not recognized.
+	 */
+	public function filter_customize_dynamic_partial_args( $partial_args, $partial_id ) {
+		if ( preg_match( '#^featured_item\[(?P<post_id>\d+)\]$#', $partial_id, $matches ) ) {
+			if ( false == $partial_args ) {
+				$partial_args = array();
+			}
+
+			$partial_args = array_merge(
+				$partial_args,
+				array(
+					'plugin' => $this->plugin,
+					'post_id' => intval( $matches['post_id'] ),
+					'type' => Featured_Item_Customize_Partial::TYPE,
+				)
+			);
+		}
+		return $partial_args;
+	}
+
+	/**
+	 * Assign WP_Customize_Partial subclass to be used for the featured items.
+	 *
+	 * @param string $partial_class WP_Customize_Partial or a subclass.
+	 * @param string $partial_id    ID for dynamic partial.
+	 * @param array  $partial_args  Partial args.
+	 * @return string Class name.
+	 */
+	public function filter_customize_dynamic_partial_class( $partial_class, $partial_id, $partial_args ) {
+		unset( $partial_id );
+		if ( isset( $partial_args['type'] ) && Featured_Item_Customize_Partial::TYPE === $partial_args['type'] ) {
+			$partial_class = __NAMESPACE__ . '\\Featured_Item_Customize_Partial';
+		}
+		return $partial_class;
 	}
 }

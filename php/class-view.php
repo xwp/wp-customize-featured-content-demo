@@ -118,7 +118,12 @@ class View {
 		}
 
 		?>
-		<li class="<?php echo esc_attr( "featured-content-item featured-content-item-$id" ); ?>" data-position="<?php echo esc_attr( $rendered_item['position'] ); ?>" <?php if ( 'trash' === $item['status'] ) { echo 'hidden'; } ?> >
+		<li
+			class="featured-content-item"
+			data-customize-partial-id="<?php echo esc_attr( "featured_item[$id]" ); ?>"
+			data-customize-partial-type="featured_item"
+			data-position="<?php echo esc_attr( $rendered_item['position'] ); ?>"
+		>
 			<?php if ( $rendered_item['url'] ) : ?>
 				<a class="title" href="<?php echo esc_url( $rendered_item['url'] ); ?>">
 			<?php else : ?>
