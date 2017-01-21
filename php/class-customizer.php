@@ -161,18 +161,6 @@ class Customizer {
 	}
 
 	/**
-	 * Filter out featured_item posts from nav_menus_created_posts since we will handle publishing ourselves.
-	 *
-	 * @param array $post_ids Post IDs that have been created in the customizer session.
-	 * @return array Post IDs for auto-draft posts.
-	 */
-	public function filter_nav_menus_created_posts_setting( $post_ids ) {
-		return array_filter( $post_ids, function( $post_id ) {
-			return Model::POST_TYPE !== get_post_type( $post_id );
-		} );
-	}
-
-	/**
 	 * Filter featured items list to apply the customized state.
 	 *
 	 * Inject featured items created in the current changeset, and remove the items that have been trashed.
