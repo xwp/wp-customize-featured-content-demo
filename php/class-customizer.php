@@ -100,7 +100,7 @@ class Customizer {
 		$this->manager->register_control_type( __NAMESPACE__ . '\Featured_Item_Status_Customize_Control' );
 
 		// @todo Should this register all of the settings or should they be fetched dynamically via REST API call?
-		$items = $this->plugin->model->get_items();
+		$items = $this->plugin->model->get_items(); // Note: Preview filters have not been applied yet, so trashed items will not be remvoed.
 		$item_schema = $this->plugin->model->get_item_schema_properties();
 		foreach ( $items as $item ) {
 			foreach ( $item_schema as $field_id => $field_schema ) {

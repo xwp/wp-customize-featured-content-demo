@@ -8,6 +8,11 @@
 	font-weight: normal;
 	color: #ccc
 }
+.control-section-featured_item.trashed  > .accordion-section-title:before {
+	content: "\f182";
+	cursor: pointer;
+}
+
 
 #customize-controls .control-panel-featured_items > .panel-meta {
 	border-bottom: 0;

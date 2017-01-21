@@ -32,6 +32,9 @@ wp.customize.panelConstructor.featured_items = (function( api, $ ) {
 
 			panel.injectAdditionButton();
 			panel.setupSectionSorting();
+			api.bind( 'ready', function() { // Because api.state is not read until then.
+				panel.handleChagesetPublish();
+			} );
 		},
 
 		/**
@@ -233,6 +236,39 @@ wp.customize.panelConstructor.featured_items = (function( api, $ ) {
 					} );
 				}
 			});
+		},
+
+		/**
+		 * Handle publishing (saving) of changeset.
+		 *
+		 * @returns {void}
+		 */
+		handleChagesetPublish: function handleChagesetPublish() {
+			var panel = this;
+			api.state( 'changesetStatus' ).bind( function( newStatus ) {
+				if ( 'publish' !== newStatus ) {
+					return;
+				}
+
+				api.section.each( function( section ) {
+					if ( section.extended( api.sectionConstructor.featured_item ) && api.has( section.id + '[status]' ) && 'trash' === api( section.id + '[status]' ).get() ) {
+						panel.removeSection( section );
+					}
+				} );
+			} );
+		},
+
+		/**
+		 * Remove section.
+		 *
+		 * @param {wp.customize.Section} section Section to remove.
+		 * @returns {void}
+		 */
+		removeSection: function removeSection( section ) {
+			section.collapse();
+			section.container.remove();
+			section.panel.set( '' );
+			api.section.remove( section.id );
 		}
 
 	});

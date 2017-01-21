@@ -138,6 +138,14 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 				titleSetting.bind( setTitle );
 				setTitle( titleSetting() );
 			} );
+
+			api( section.params.settingIdBase + '[status]', function( statusSetting ) {
+				var setStatus = function( newStatus ) {
+					section.headContainer.toggleClass( 'trashed', 'trash' === newStatus );
+				};
+				statusSetting.bind( setStatus );
+				setStatus( statusSetting() );
+			} );
 		},
 
 		/**
