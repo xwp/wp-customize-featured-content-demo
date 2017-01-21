@@ -52,7 +52,11 @@ class View {
 	public function get_rendered_title( $title, $id ) {
 
 		/** This filter is documented in wp-includes/post-template.php*/
-		return apply_filters( 'the_title', $title, $id );
+		$title = apply_filters( 'the_title', $title, $id );
+
+		$title = convert_smilies( $title );
+
+		return $title;
 	}
 
 	/**
@@ -68,6 +72,8 @@ class View {
 		/** This filter is documented in wp-includes/post-template.php */
 		$excerpt = apply_filters( 'the_excerpt', apply_filters( 'get_the_excerpt', $excerpt, $post ) );
 
+		$excerpt = convert_smilies( $excerpt );
+
 		return $excerpt;
 	}
 
@@ -78,7 +84,7 @@ class View {
 	 */
 	function render_item( $id ) {
 		$item = $this->plugin->model->get_item( $id );
-		if ( ! $item ) {
+		if ( ! $item || 'trash' === $item['status'] ) {
 			return;
 		}
 
@@ -122,7 +128,6 @@ class View {
 			class="featured-content-item"
 			data-customize-partial-id="<?php echo esc_attr( "featured_item[$id]" ); ?>"
 			data-customize-partial-type="featured_item"
-			data-position="<?php echo esc_attr( $rendered_item['position'] ); ?>"
 		>
 			<?php if ( $rendered_item['url'] ) : ?>
 				<a class="title" href="<?php echo esc_url( $rendered_item['url'] ); ?>">

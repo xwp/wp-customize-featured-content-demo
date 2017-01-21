@@ -33,6 +33,7 @@ wp.customize.selectiveRefresh.partialConstructor.featured_item = (function( api,
 			api.selectiveRefresh.Partial.prototype.initialize.call( partial, id, options );
 
 			partial.params.containerInclusive = true;
+			partial.params.fallbackRefresh = false;
 			partial.params.settings = _.map( partial.settingProperties, function( propertyName ) {
 				return partial.id + '[' + propertyName + ']';
 			} );
@@ -51,21 +52,13 @@ wp.customize.selectiveRefresh.partialConstructor.featured_item = (function( api,
 			} );
 
 			/*
-			 * Purely handle change to status in the DOM since this involves just show/hide toggle.
+			 * Instantly toggle the visibility of the placements on status change.
 			 */
 			api( id + '[status]', function( statusSetting ) {
-				statusSetting.bind( function() {
-
-					var placements = partial.placements();
-					if ( 0 === placements.length ) {
-
-						// @todo In this case the partial container should be added dynamically and avoid a full-page refresh. Same for insertion and deletion.
-						partial.refresh();
-					} else {
-						_.each( placements, function( placement ) {
-							placement.container.toggle( 'publish' === statusSetting.get() );
-						} );
-					}
+				statusSetting.bind( function( newStatus ) {
+					_.each( partial.placements(), function( placement ) {
+						placement.container.toggle( 'publish' === newStatus );
+					} );
 				} );
 			} );
 
@@ -73,7 +66,8 @@ wp.customize.selectiveRefresh.partialConstructor.featured_item = (function( api,
 			 * Add support for Customize Posts.
 			 * Relate the partial to the post setting and featured image setting
 			 * for the post that is designated the related post for this featured
-			 * item.
+			 * item. This ensures that the featured item partial will refresh
+			 * when the related post is changed, including changes to its featured image.
 			 */
 			api( id + '[related]', function( relatedSetting ) {
 				var updateRelatedPostSettings = function( newRelatedPostId, oldRelatedPostId ) {
@@ -110,8 +104,11 @@ wp.customize.selectiveRefresh.partialConstructor.featured_item = (function( api,
 				return false;
 			}
 
-			// Prevent selective refresh in response to status changes since we handle them in separately and purely in DOM.
-			if ( settingId === partial.id + '[status]' ) {
+			/*
+			 * Prevent selective refresh in response to changing status to trash.
+			 * An item set to have a trash status will be hidden immediately via JS.
+			 */
+			if ( settingId === partial.id + '[status]' && 'trash' === newValue ) {
 				return false;
 			}
 
@@ -121,6 +118,36 @@ wp.customize.selectiveRefresh.partialConstructor.featured_item = (function( api,
 			}
 
 			return api.selectiveRefresh.Partial.prototype.isRelatedSetting.call( partial, setting, newValue, oldValue );
+		},
+
+		/**
+		 * Find all placements for this partial in the document.
+		 *
+		 * Inject missing placements if none found (due to having been previously trashed or having been just added).
+		 *
+		 * @return {Array.<wp.customize.selectiveRefresh.Placement>}
+		 */
+		placements: function placements() {
+			var partial = this, placements, statusSetting;
+			placements = api.selectiveRefresh.Partial.prototype.placements.call( partial );
+
+			statusSetting = api( partial.id + '[status]' );
+			if ( 0 === placements.length && statusSetting && 'trash' !== statusSetting.get() ) {
+				placements = $( '.featured-content-items' ).map( function() {
+					var featuredItemsContainer = $( this ), placementContainer;
+					placementContainer = $( '<li></li>' );
+					placementContainer.addClass( 'featured-content-item' );
+					placementContainer.attr( 'data-customize-partial-id', partial.id );
+					placementContainer.attr( 'data-customize-type', partial.type );
+					featuredItemsContainer.prepend( placementContainer );
+					return new api.selectiveRefresh.Placement( {
+						partial: partial,
+						container: placementContainer
+					} );
+				} ).get();
+			}
+
+			return placements;
 		},
 
 		/**
