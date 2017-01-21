@@ -33,6 +33,7 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 			title_label: '{missing_text:title}',
 			excerpt_label: '{missing_text:description}',
 			position_label: '{missing_text:position}',
+			status_label: '{missing_text:status}',
 			customize_action: '{missing_text:customize_action}'
 		},
 
@@ -40,6 +41,7 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 		controlPriorities: (function() {
 			var order, orderMapping = {};
 			order = [
+				'status',
 				'related',
 				'featured_media',
 				'title',
@@ -92,6 +94,7 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 			section.addTitleControl();
 			section.addExcerptControl();
 			section.addURLControl();
+			section.addStatusControl();
 		},
 
 		/**
@@ -314,6 +317,31 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 					input_attrs: {
 						'data-customize-setting-link': customizeId,
 						placeholder: section.l10n.url_placeholder
+					}
+				}
+			} );
+
+			api.control.add( control.id, control );
+
+			return control;
+		},
+
+		/**
+		 * Add status control.
+		 *
+		 * @returns {wp.customize.Control} Added control.
+		 */
+		addStatusControl: function addStatusControl() {
+			var section = this, control, customizeId;
+			customizeId = section.params.settingIdBase + '[status]';
+			control = new api.controlConstructor.featured_item_status( customizeId, {
+				params: {
+					section: section.id,
+					priority: section.controlPriorities.status,
+					label: section.l10n.status_label,
+					active: true,
+					settings: {
+						'default': customizeId
 					}
 				}
 			} );

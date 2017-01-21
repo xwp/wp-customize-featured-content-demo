@@ -45,8 +45,29 @@
 	top: -1px;
 	font: normal 20px/1 dashicons;
 	vertical-align: middle;
-	-webkit-transition: all 0.2s;
-	transition: all 0.2s;
-	-webkit-font-smoothing: antialiased;
-	-moz-osx-font-smoothing: grayscale;
+}
+.customize-control-featured_item_status .control-row {
+	display: flex;
+	justify-content: space-between;
+}
+.customize-control-featured_item_status .control-row .customize-control-title {
+	display: block;
+}
+.customize-control-featured_item_status .control-row button.toggle-trashed {
+	display: block;
+}
+.customize-control-featured_item_status .control-row button.toggle-trashed .trash:before,
+.customize-control-featured_item_status .control-row button.toggle-trashed .untrash:before {
+	display: inline-block;
+	position: relative;
+	left: -2px;
+	top: -2px;
+	font: normal 20px/1 dashicons;
+	vertical-align: middle;
+}
+.customize-control-featured_item_status .control-row button.toggle-trashed .trash:before {
+	content: "\f182";
+}
+.customize-control-featured_item_status .control-row button.toggle-trashed .untrash:before {
+	content: "\f171";
 }

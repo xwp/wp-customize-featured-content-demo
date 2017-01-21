@@ -130,6 +130,12 @@ class Plugin {
 			$wp_scripts->add( $handle, $src, $deps, $this->version );
 		}
 
+		// Status control.
+		$handle = 'featured-item-status-control';
+		$src = $plugin_dir_url . 'js/featured-item-status-control.js';
+		$deps = array( 'customize-controls' );
+		$wp_scripts->add( $handle, $src, $deps, $this->version );
+
 		// Base namespace.
 		$handle = 'customize-featured-content-demo-base';
 		$src = $plugin_dir_url . 'js/base.js';
@@ -153,6 +159,7 @@ class Plugin {
 			'customize-featured-content-demo-base',
 			'customize-controls',
 			'customize-object-selector-control',
+			'featured-item-status-control',
 		);
 		$wp_scripts->add( $handle, $src, $deps, $this->version );
 		$wp_scripts->add_inline_script( $handle, sprintf(
@@ -176,6 +183,7 @@ class Plugin {
 				'title_label' => __( 'Title (Override)', 'customize-featured-content-demo' ),
 				'excerpt_label' => __( 'Description (Override)', 'customize-featured-content-demo' ),
 				'position_label' => __( 'Position', 'customize-featured-content-demo' ),
+				'status_label' => __( 'Status:', 'customize-featured-content-demo' ),
 				'customize_action' => __( 'Customizing featured item:', 'customize-featured-content-demo' ),
 			) )
 		) );

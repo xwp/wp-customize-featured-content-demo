@@ -611,20 +611,17 @@ class Model {
 	 */
 	public function get_items() {
 
-		// @todo Use of object cache is probably overkill here and it will hurt more than help if posts/postmeta are not cached.
-		$post_ids = wp_cache_get( static::GET_ITEMS_CACHE_KEY );
-		if ( ! is_array( $post_ids ) ) {
-			$query = new \WP_Query( array(
-				'post_type' => static::POST_TYPE,
-				'posts_per_page' => -1,
-				'post_status' => 'publish',
-			) );
+		// @todo We need to include trash?
+		$post_stati = array( 'publish' );
 
-			// Note: fields=>ids is not used because we want to cache the full post objects.
-			$post_ids = wp_list_pluck( $query->posts, 'ID' );
+		$query = new \WP_Query( array(
+			'post_type' => static::POST_TYPE,
+			'posts_per_page' => -1,
+			'post_status' => $post_stati,
+		) );
 
-			wp_cache_set( static::GET_ITEMS_CACHE_KEY, $post_ids );
-		}
+		// Note: fields=>ids is not used because we want to cache the full post objects.
+		$post_ids = wp_list_pluck( $query->posts, 'ID' );
 
 		/**
 		 * Filters the IDs for all of the current featured items.

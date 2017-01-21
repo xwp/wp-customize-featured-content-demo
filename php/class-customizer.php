@@ -49,7 +49,6 @@ class Customizer {
 		add_action( 'customize_preview_init', array( $this, 'preview_items_list' ) );
 
 		add_action( 'customize_controls_enqueue_scripts', array( $this, 'enqueue_pane_dependencies' ) );
-		add_action( 'customize_controls_print_footer_scripts', array( $this, 'render_customize_templates' ) );
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_preview_dependencies' ) );
 	}
 
@@ -76,15 +75,6 @@ class Customizer {
 	}
 
 	/**
-	 * Print JS templates.
-	 *
-	 * @see WP_Customize_Widget::render_form_template_scripts()
-	 */
-	function render_customize_templates() {
-		// @todo Might be needed.
-	}
-
-	/**
 	 * Register panel and control type.
 	 *
 	 * @see WP_Customize_Posts::register_constructs()
@@ -98,6 +88,8 @@ class Customizer {
 		if ( ! class_exists( '\WP_Customize_Dynamic_Control' ) ) {
 			$this->manager->register_control_type( __NAMESPACE__ . '\WP_Customize_Dynamic_Control' );
 		}
+
+		$this->manager->register_control_type( __NAMESPACE__ . '\Featured_Item_Status_Customize_Control' );
 
 		// @todo Should this register all of the settings or should they be fetched dynamically via REST API call?
 		$items = $this->plugin->model->get_items();
@@ -220,7 +212,12 @@ class Customizer {
 			}
 		}
 
+		// @todo There needs to be a better way to get a list of the partials to register.
 		foreach ( $partial_settings as $partial_id => $settings ) {
+			if ( ! isset( $settings['status'] ) || 'trash' === $settings['status']->value() ) {
+				continue;
+			}
+
 			$related_setting = $settings['related'];
 			$partial_args = array(
 				'type' => 'featured_item',

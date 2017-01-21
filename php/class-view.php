@@ -86,6 +86,8 @@ class View {
 
 		$related_post = ! empty( $item['related'] ) ? get_post( $item['related'] ) : null;
 		if ( $related_post ) {
+			$GLOBALS['post'] = $related_post;
+			setup_postdata( $related_post ); // Gives a chance for Customize Posts to preview.
 			if ( ! $item['url'] ) {
 				$item['url'] = get_permalink( $related_post->ID );
 			}
@@ -98,6 +100,7 @@ class View {
 			if ( ! $item['featured_media'] ) {
 				$item['featured_media'] = get_post_thumbnail_id( $related_post );
 			}
+			wp_reset_postdata();
 		}
 
 		$rendered_item = array();
@@ -115,7 +118,7 @@ class View {
 		}
 
 		?>
-		<li class="<?php echo esc_attr( "featured-content-item featured-content-item-$id" ); ?>" data-position="<?php echo esc_attr( $rendered_item['position'] ); ?>">
+		<li class="<?php echo esc_attr( "featured-content-item featured-content-item-$id" ); ?>" data-position="<?php echo esc_attr( $rendered_item['position'] ); ?>" <?php if ( 'trash' === $item['status'] ) { echo 'hidden'; } ?> >
 			<?php if ( $rendered_item['url'] ) : ?>
 				<a class="title" href="<?php echo esc_url( $rendered_item['url'] ); ?>">
 			<?php else : ?>

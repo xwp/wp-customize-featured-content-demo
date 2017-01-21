@@ -23,10 +23,56 @@ wp.customize.selectiveRefresh.partialConstructor.featured_item = (function( api,
 			var partial = this;
 			api.selectiveRefresh.Partial.prototype.initialize.call( partial, id, options );
 
+			/*
+			 * Use pure JS to update partial instead of selective refresh server request.
+			 * Since a partial is constrained to the item itself an update the the
+			 * position setting wouldn't have any effect on the placement in the page.
+			 * So any updates to the position setting are excluded from causing
+			 * refresh requests in the isRelatedSetting subclassed method.
+			 */
 			api( id + '[position]', function( positionSetting ) {
 				positionSetting.bind( function() {
 					partial.repositionPlacements();
 				} );
+			} );
+
+			/*
+			 * Purely handle change to status in the DOM since this involves just show/hide toggle.
+			 */
+			api( id + '[status]', function( statusSetting ) {
+				statusSetting.bind( function() {
+
+					var placements = partial.placements();
+					if ( 0 === placements.length ) {
+
+						// @todo In this case the partial container should be added dynamically and avoid a full-page refresh. Same for insertion and deletion.
+						partial.refresh();
+					} else {
+						_.each( placements, function( placement ) {
+							placement.container.toggle( 'publish' === statusSetting.get() );
+						} );
+					}
+				} );
+			} );
+
+			/*
+			 * Add support for Customize Posts.
+			 * Relate the partial to the post setting and featured image setting
+			 * for the post that is designated the related post for this featured
+			 * item.
+			 */
+			api( id + '[related]', function( relatedSetting ) {
+				var updateRelatedPostSettings = function( newRelatedPostId, oldRelatedPostId ) {
+					partial.params.settings = _.without(
+						partial.params.settings,
+						'post[post][' + String( oldRelatedPostId ) + ']',
+						'postmeta[post][' + String( oldRelatedPostId ) + '][_thumbnail_id]'
+					);
+					partial.params.settings.push( 'post[post][' + String( newRelatedPostId ) + ']' );
+					partial.params.settings.push( 'postmeta[post][' + String( newRelatedPostId ) + '][_thumbnail_id]' );
+				};
+				relatedSetting.bind( updateRelatedPostSettings );
+				updateRelatedPostSettings( relatedSetting.get(), 0 );
 			} );
 		},
 
@@ -43,9 +89,20 @@ wp.customize.selectiveRefresh.partialConstructor.featured_item = (function( api,
 		isRelatedSetting: function isRelatedSetting( setting, newValue, oldValue ) {
 			var partial = this, settingId;
 
-			// Prevent selective refresh in response to position changes since we handle them in separately and purely in DOM.
 			settingId = _.isString( setting ) ? setting : setting.id;
+
+			// Prevent selective refresh in response to position changes since we handle them in separately and purely in DOM.
 			if ( settingId === partial.id + '[position]' ) {
+				return false;
+			}
+
+			// Prevent selective refresh in response to status changes since we handle them in separately and purely in DOM.
+			if ( settingId === partial.id + '[status]' ) {
+				return false;
+			}
+
+			// Handle special case for Customize Posts since settings are dynamically added.
+			if ( null === oldValue ) {
 				return false;
 			}
 
