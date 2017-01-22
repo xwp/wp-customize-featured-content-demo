@@ -14,6 +14,13 @@ wp.customize.panelConstructor.featured_items = (function( api, $ ) {
 	return api.Panel.extend({
 
 		/**
+		 * Items collection.
+		 *
+		 * @var {Backbone.Collection}
+		 */
+		itemsCollection: null,
+
+		/**
 		 * Ready.
 		 *
 		 * @returns {void}
@@ -22,17 +29,15 @@ wp.customize.panelConstructor.featured_items = (function( api, $ ) {
 			var panel = this;
 			api.Panel.prototype.ready.call( panel );
 
-			if ( ! _.isObject( panel.params.default_item_property_setting_params ) ) {
-				throw new Error( 'Missing default_item_property_setting_params params.' );
-			}
-
 			_.bindAll( panel, 'handleSettingAddition' );
+
 			api.each( panel.handleSettingAddition );
 			api.bind( 'add', panel.handleSettingAddition );
 
 			panel.injectAdditionButton();
 			panel.setupSectionSorting();
 			api.bind( 'ready', function() { // Because api.state is not read until then.
+				panel.loadItems();
 				panel.handleChagesetPublish();
 			} );
 
@@ -42,6 +47,43 @@ wp.customize.panelConstructor.featured_items = (function( api, $ ) {
 					panel.collapse();
 				}
 			} );
+		},
+
+		/**
+		 * Load items.
+		 *
+		 * @todo Defer this until the panel is expanded? Lazy loaded when needed? But then partials in preview won't be initialized.
+		 *
+		 * @returns {void}
+		 */
+		loadItems: function loadItems() {
+			var panel = this, reject, deferred = $.Deferred();
+			reject = function( err ) {
+				deferred.reject( err );
+			};
+			wp.api.init().fail( reject ).done( function() {
+				var FeaturedItems, queryParams;
+				FeaturedItems = wp.api.collections['Featured-items']; // @todo Add better mapping.
+				if ( ! FeaturedItems ) {
+					deferred.reject( 'Missing collection for featured-items.' );
+					return;
+				}
+
+				panel.itemsCollection = new FeaturedItems();
+
+				// Ensure customized state is applied in the response.
+				queryParams = api.previewer.query();
+				delete queryParams.customized; // No POST data would be queued for saving to changeset.
+				queryParams._embed = true;
+
+				panel.itemsCollection.fetch( { data: queryParams } ).fail( reject ).done( function() {
+					panel.itemsCollection.each( function( item ) {
+						panel.ensureSettings( item );
+					} );
+					deferred.resolve();
+				} );
+			} );
+			return deferred.promise();
 		},
 
 		/**
@@ -96,66 +138,40 @@ wp.customize.panelConstructor.featured_items = (function( api, $ ) {
 		},
 
 		/**
-		 * Create auto-draft.
+		 * Create featured item for the customized state.
 		 *
-		 * @returns {jQuery.promise} Promise resolving with the post ID.
+		 * @returns {jQuery.promise} Resolves with section object and the item model created.
 		 */
-		insertAutoDraft: function insertAutoDraft() {
-			var deferred = $.Deferred(), reject;
+		createItem: function createItem() {
+			var panel = this, deferred = $.Deferred(), reject, FeaturedItem, item;
 
 			reject = function() {
 				deferred.reject();
 			};
 
-			wp.api.init().fail( reject ).done( function() {
-				var FeaturedItem, item;
-				if ( ! wp.api.models['Featured-items'] ) {
-					reject();
-				}
-				FeaturedItem = wp.api.models['Featured-items']; // @todo Add better mapping.
-				item = new FeaturedItem();
-				item.save( { status: 'auto-draft' }, {
-					success: function( savedItem ) {
-						deferred.resolve( savedItem.id );
-					},
-					error: reject
-				} );
-			} );
-
-			return deferred.promise();
-		},
-
-		/**
-		 * Create featured item for the customized state.
-		 *
-		 * @returns {jQuery.promise} Resolves with section object and object containing the property settings.
-		 */
-		createItem: function createItem() {
-			var panel = this, deferred = $.Deferred(), autoDraft;
-
-			autoDraft = panel.insertAutoDraft();
-			autoDraft.fail( function() {
-				deferred.reject();
-			} );
-			autoDraft.done( function createSettings( id ) {
-				var sectionId, propertySettings;
+			FeaturedItem = wp.api.models['Featured-items'];
+			item = new FeaturedItem( { status: 'auto-draft' } );
+			item.save().fail( reject ).done( function() {
+				var sectionId;
+				item.set( { status: 'publish' } );
 
 				// Bump all existing featured items up in position so the new item will be added to the top (first).
+				// @todo This can now instead do: panel.itemsCollection.each( function( item ) { if ( item.id !== id ): item.customizeSettings.property.set( item.customizeSettings.property.get() + 1 ); } );
 				api.each( function( setting ) {
 					if ( setting.extended( api.settingConstructor.featured_item_property ) && 'position' === setting.property ) {
 						setting.set( setting.get() + 1 );
 					}
 				} );
 
-				// Ensure settings for the auto-draft item are created.
-				propertySettings = panel.ensureItemPropertySettings( id );
+				panel.ensureSettings( item, { dirty: true } );
+				panel.itemsCollection.add( item );
 
 				// Resolve once the section exists. The section will be added via handleSettingAddition.
-				sectionId = 'featured_item[' + String( id ) + ']';
+				sectionId = 'featured_item[' + String( item.id ) + ']';
 				api.section( sectionId, function( section ) {
 					deferred.resolve( {
 						section: section,
-						propertySettings: propertySettings
+						item: item
 					} );
 				} );
 			} );
@@ -164,31 +180,54 @@ wp.customize.panelConstructor.featured_items = (function( api, $ ) {
 		},
 
 		/**
-		 * Ensure item property settings.
+		 * Ensure customize settings for a given item.
 		 *
-		 * Create a new featured_item_property setting if one doesn't already exist.
-		 *
-		 * @param {string} id Featured item ID.
-		 * @returns {object} Mapping field ID to the field property settings.
+		 * @param {Backbone.Model} item    FeaturedItem model.
+		 * @param {object}         [options] Options.
+		 * @param {Boolean}        [options.dirty=false] Whether created settings will be marked as dirty.
+		 * @returns {void}
 		 */
-		ensureItemPropertySettings: function ensureItemPropertySettings( id ) {
-			var panel = this, Setting, propertySettings = {};
-			Setting = api.settingConstructor.featured_item_property;
-			_.each( panel.params.default_item_property_setting_params, function( params, fieldId ) {
+		ensureSettings: function ensureSettings( item, options ) {
+			var Setting, properties, args;
+
+			args = _.extend( { dirty: false }, options );
+
+			// Flatten the REST resource and remove the readonly attributes.
+			properties = _.clone( item.attributes );
+			delete properties._embedded;
+			delete properties._links;
+			delete properties.id;
+			properties.title = properties.title.raw;
+			properties.excerpt = properties.excerpt.raw;
+
+			// @todo Is this even necessary to keep?
+			if ( ! item.customizeSettings ) {
+				item.customizeSettings = {};
+			}
+
+			Setting = Setting = api.settingConstructor.featured_item_property;
+			_.each( properties, function( propertyValue, propertyName ) {
 				var setting, settingId;
-				settingId = 'featured_item[' + String( id ) + '][' + fieldId + ']';
+				settingId = 'featured_item[' + String( item.id ) + '][' + propertyName + ']';
 				setting = api( settingId );
 				if ( ! setting ) {
-					setting = new Setting( settingId, null, _.extend( {},
-						params,
-						{ previewer: api.previewer }
-					) );
-					setting = api.add( settingId, setting );
-					setting.set( params.value ); // Mark dirty.
+
+					// @todo Params here are not DRY with what is defined in Featured_Item_Property_Customize_Setting.
+					setting = new Setting( settingId, propertyValue, {
+						type: 'featured_item_property',
+						transport: 'postMessage',
+						previewer: api.previewer,
+						dirty: args.dirty
+					} );
+					api.add( settingId, setting );
+					if ( args.dirty ) {
+						setting.preview(); // Make sure setting is sent to the preview.
+					}
 				}
-				propertySettings[ fieldId ] = setting;
+
+				item.customizeSettings[ propertyName ] = setting;
+				setting.wpApiModel = item;
 			} );
-			return propertySettings;
 		},
 
 		/**

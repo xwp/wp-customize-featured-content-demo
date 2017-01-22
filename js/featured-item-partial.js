@@ -1,4 +1,4 @@
-/* global wp */
+/* global wp, wpApiSettings */
 /* eslint consistent-this: [ "error", "partial" ], no-magic-numbers: [ "error", { "ignore": [-1,0,1] } ] */
 
 wp.customize.selectiveRefresh.partialConstructor.featured_item = (function( api, $ ) {
@@ -14,15 +14,6 @@ wp.customize.selectiveRefresh.partialConstructor.featured_item = (function( api,
 	return api.selectiveRefresh.Partial.extend({
 
 		/**
-		 * List of property names for computing the IDs for related featured_item_property settings.
-		 *
-		 * The array's contents are populated in PHP via `\Customize_Featured_Content_Demo\Customizer::enqueue_preview_dependencies()`.
-		 *
-		 * @var {string[]}
-		 */
-		settingProperties: [],
-
-		/**
 		 * Constructor.
 		 *
 		 * @param {string} id - Partial ID.
@@ -34,8 +25,20 @@ wp.customize.selectiveRefresh.partialConstructor.featured_item = (function( api,
 
 			partial.params.containerInclusive = true;
 			partial.params.fallbackRefresh = false;
-			partial.params.settings = _.map( partial.settingProperties, function( propertyName ) {
-				return partial.id + '[' + propertyName + ']';
+
+			// @todo This seems _very_ hacky. See https://wordpress.slack.com/archives/core-restapi/p1485064187002996
+			wp.api.init().done( function() {
+				var itemArgs, route;
+				route = '/wp/v2/featured-items/(?P<id>[\\d]+)';
+				itemArgs = _.find( wp.api.endpoints.findWhere( {
+					versionString: wpApiSettings.versionString,
+					apiRoot: wpApiSettings.root
+				} ).schemaModel.get( 'routes' )[ route ].endpoints, function( endpoint ) {
+					return -1 !== _.indexOf( endpoint.methods, 'PUT' );
+				} ).args;
+				partial.params.settings = _.map( _.keys( itemArgs ), function( propertyName ) {
+					return partial.id + '[' + propertyName + ']';
+				} );
 			} );
 
 			/*

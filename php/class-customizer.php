@@ -72,13 +72,6 @@ class Customizer {
 			wp_enqueue_script( $handle );
 			wp_add_inline_script( $handle, 'wp.customize.featuredContent.preview.initialize();' );
 			wp_enqueue_style( $handle );
-
-			$handle = 'customize-featured-item-partial';
-			$js = sprintf(
-				'wp.customize.selectiveRefresh.partialConstructor.featured_item.prototype.settingProperties = %s;',
-				wp_json_encode( array_keys( $this->get_default_item_property_setting_params() ) )
-			);
-			wp_add_inline_script( $handle, $js );
 		}
 	}
 
@@ -99,25 +92,7 @@ class Customizer {
 
 		$this->manager->register_control_type( __NAMESPACE__ . '\Featured_Item_Status_Customize_Control' );
 
-		// @todo Should this register all of the settings or should they be fetched dynamically via REST API call?
-		$items = $this->plugin->model->get_items(); // Note: Preview filters have not been applied yet, so trashed items will not be remvoed.
-		$item_schema = $this->plugin->model->get_item_schema_properties();
-		foreach ( $items as $item ) {
-			foreach ( $item_schema as $field_id => $field_schema ) {
-				if ( ! empty( $field_schema['readonly'] ) ) {
-					continue;
-				}
-				$setting_id = null; // This setting type will compute the setting based on the post_id and property args.
-				$setting = new Featured_Item_Property_Customize_Setting( $wp_customize, $setting_id, array(
-					'post_id' => $item['id'],
-					'property' => $field_id,
-					'plugin' => $this->plugin,
-				) );
-				$wp_customize->add_setting( $setting );
-			}
-		}
-
-		// Note that sections will by dynamically added via JS.
+		// Note that settings and sections will by dynamically added via JS.
 		$panel = new Featured_Items_Customize_Panel( $this->manager, 'featured_items', array(
 			'title' => __( 'Featured Items', 'customize-featured-content-demo' ),
 			'plugin' => $this->plugin,
@@ -133,26 +108,6 @@ class Customizer {
 		add_action( 'customize_controls_print_footer_scripts', array( $panel, 'print_template' ) );
 
 		$wp_customize->add_panel( $panel );
-	}
-
-	/**
-	 * Get params for item property settings.
-	 *
-	 * @see WP_Customize_Setting::json()
-	 * @returns array Default params for each setting.
-	 */
-	public function get_default_item_property_setting_params() {
-		$setting_params = array();
-		foreach ( $this->plugin->model->get_item_schema_properties() as $field_id => $field_schema ) {
-			if ( ! empty( $field_schema['readonly'] ) ) {
-				continue;
-			}
-			$params = Featured_Item_Property_Customize_Setting::$default_args;
-			$params['type'] = Featured_Item_Property_Customize_Setting::TYPE;
-			$params['value'] = isset( $field_schema['default'] ) ? $field_schema['default'] : null;
-			$setting_params[ $field_id ] = $params;
-		}
-		return $setting_params;
 	}
 
 	/**
