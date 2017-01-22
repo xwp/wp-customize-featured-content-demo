@@ -26,17 +26,9 @@ wp.customize.selectiveRefresh.partialConstructor.featured_item = (function( api,
 			partial.params.containerInclusive = true;
 			partial.params.fallbackRefresh = false;
 
-			// @todo This seems _very_ hacky. See https://wordpress.slack.com/archives/core-restapi/p1485064187002996
 			wp.api.init().done( function() {
-				var itemArgs, route;
-				route = '/wp/v2/featured-items/(?P<id>[\\d]+)';
-				itemArgs = _.find( wp.api.endpoints.findWhere( {
-					versionString: wpApiSettings.versionString,
-					apiRoot: wpApiSettings.root
-				} ).schemaModel.get( 'routes' )[ route ].endpoints, function( endpoint ) {
-					return -1 !== _.indexOf( endpoint.methods, 'PUT' );
-				} ).args;
-				partial.params.settings = _.map( _.keys( itemArgs ), function( propertyName ) {
+				var propertyNames = _.keys( wp.api.models['Featured-items'].prototype.args );
+				partial.params.settings = _.map( propertyNames, function( propertyName ) {
 					return partial.id + '[' + propertyName + ']';
 				} );
 			} );
