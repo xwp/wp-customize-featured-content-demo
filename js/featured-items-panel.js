@@ -21,6 +21,13 @@ wp.customize.panelConstructor.featured_items = (function( api, $ ) {
 		itemsCollection: null,
 
 		/**
+		 * The constructor for a featured item model.
+		 *
+		 * @var {Function}
+		 */
+		FeaturedItem: null,
+
+		/**
 		 * Ready.
 		 *
 		 * @returns {void}
@@ -29,18 +36,17 @@ wp.customize.panelConstructor.featured_items = (function( api, $ ) {
 			var panel = this;
 			api.Panel.prototype.ready.call( panel );
 
-			_.bindAll( panel, 'handleSettingAddition' );
-
-			api.each( panel.handleSettingAddition );
-			api.bind( 'add', panel.handleSettingAddition );
-
-			panel.injectAdditionButton();
-			panel.setupSectionSorting();
-			panel.loadItems();
-			api.bind( 'saved', function( data ) {
-				if ( 'publish' === data.changeset_status ) {
-					panel.purgeTrashedItems();
-				}
+			// @todo Core should define not call ready for a panel until ready has been triggered.
+			api.bind( 'ready', function() {
+				panel.loadItems().done( function() {
+					panel.injectAdditionButton();
+					panel.setupSectionSorting();
+					api.bind( 'saved', function( data ) {
+						if ( 'publish' === data.changeset_status ) {
+							panel.purgeTrashedItems();
+						}
+					} );
+				} );
 			} );
 
 			// @todo Core should be doing this automatically. See <https://core.trac.wordpress.org/ticket/39663>.
@@ -64,24 +70,26 @@ wp.customize.panelConstructor.featured_items = (function( api, $ ) {
 				deferred.reject( err );
 			};
 			wp.api.init().fail( reject ).done( function() {
-				var FeaturedItems, queryParams;
-				FeaturedItems = wp.api.collections['Featured-items']; // @todo Add better mapping.
-				if ( ! FeaturedItems ) {
+				var queryParams;
+				if ( ! wp.api.collections['Featured-items'] || ! wp.api.models['Featured-items'] ) {
 					deferred.reject( 'Missing collection for featured-items.' );
 					return;
 				}
+				panel.FeaturedItem = wp.api.models['Featured-items']; // @todo Add better mapping.
 
-				panel.itemsCollection = new FeaturedItems();
+				panel.itemsCollection = new wp.api.collections['Featured-items'](); // @todo Add better mapping.
+				panel.itemsCollection.on( 'add', function( item ) {
+					panel.ensureSettings( item );
+					panel.ensureSection( item );
+				} );
 
+				// @todo The trashed items in the state are not getting included.
 				// Ensure customized state is applied in the response.
 				queryParams = api.previewer.query();
 				delete queryParams.customized; // No POST data would be queued for saving to changeset.
 				queryParams._embed = true;
 
 				panel.itemsCollection.fetch( { data: queryParams } ).fail( reject ).done( function() {
-					panel.itemsCollection.each( function( item ) {
-						panel.ensureSettings( item );
-					} );
 					deferred.resolve();
 				} );
 			} );
@@ -127,50 +135,39 @@ wp.customize.panelConstructor.featured_items = (function( api, $ ) {
 		},
 
 		/**
-		 * Create a featured item section when a featured item setting is added.
-		 *
-		 * @param {wp.customize.Setting} setting Setting.
-		 * @returns {void}
-		 */
-		handleSettingAddition: function handleSettingAddition( setting ) {
-			var panel = this;
-			if ( setting.extended( api.settingConstructor.featured_item_property ) ) {
-				panel.addSection( setting );
-			}
-		},
-
-		/**
 		 * Create featured item for the customized state.
 		 *
 		 * @returns {jQuery.promise} Resolves with section object and the item model created.
 		 */
 		createItem: function createItem() {
-			var panel = this, deferred = $.Deferred(), reject, FeaturedItem, item;
+			var panel = this, deferred = $.Deferred(), reject, item;
 
 			reject = function() {
 				deferred.reject();
 			};
 
-			FeaturedItem = wp.api.models['Featured-items'];
-			item = new FeaturedItem( { status: 'auto-draft' } );
+			item = new panel.FeaturedItem( { status: 'auto-draft' } );
 			item.save().fail( reject ).done( function() {
-				var sectionId;
+				/*
+				 * Override the status from auto-draft to publish, as the former
+				 * is what has been saved to the DB and the latter will be the
+				 * value that is the pending value represented in the changeset.
+				 */
 				item.set( { status: 'publish' } );
 
 				// Bump all existing featured items up in position so the new item will be added to the top (first).
-				// @todo This can now instead do: panel.itemsCollection.each( function( item ) { if ( item.id !== id ): item.customizeSettings.property.set( item.customizeSettings.property.get() + 1 ); } );
-				api.each( function( setting ) {
-					if ( setting.extended( api.settingConstructor.featured_item_property ) && 'position' === setting.property ) {
-						setting.set( setting.get() + 1 );
+				panel.itemsCollection.each( function( item ) {
+					var positionSetting = panel.getPropertySetting( item.id, 'position' );
+					if ( positionSetting ) {
+						positionSetting.set( positionSetting.get() + 1 );
 					}
 				} );
 
-				panel.ensureSettings( item, { dirty: true } );
+				// This will cause the settings and section to be created.
 				panel.itemsCollection.add( item );
 
-				// Resolve once the section exists. The section will be added via handleSettingAddition.
-				sectionId = 'featured_item[' + String( item.id ) + ']';
-				api.section( sectionId, function( section ) {
+				// Resolve once the section exists.
+				api.section( panel.getSectionId( item.id ), function( section ) {
 					deferred.resolve( {
 						section: section,
 						item: item
@@ -184,17 +181,13 @@ wp.customize.panelConstructor.featured_items = (function( api, $ ) {
 		/**
 		 * Ensure customize settings for a given item.
 		 *
-		 * @param {Backbone.Model} item    FeaturedItem model.
-		 * @param {object}         [options] Options.
-		 * @param {Boolean}        [options.dirty=false] Whether created settings will be marked as dirty.
+		 * @param {Backbone.Model} item FeaturedItem model.
 		 * @returns {void}
 		 */
-		ensureSettings: function ensureSettings( item, options ) {
-			var Setting, properties, args;
+		ensureSettings: function ensureSettings( item ) {
+			var panel = this, Setting, properties;
 
-			args = _.extend( { dirty: false }, options );
-
-			// Flatten the REST resource and remove the readonly attributes.
+			// Flatten the REST resource and remove the readonly attributes. TODO: This should be schema-driven.
 			properties = _.clone( item.attributes );
 			delete properties._embedded;
 			delete properties._links;
@@ -202,47 +195,83 @@ wp.customize.panelConstructor.featured_items = (function( api, $ ) {
 			properties.title = properties.title.raw;
 			properties.excerpt = properties.excerpt.raw;
 
-			// @todo Is this even necessary to keep?
-			if ( ! item.customizeSettings ) {
-				item.customizeSettings = {};
-			}
-
 			Setting = Setting = api.settingConstructor.featured_item_property;
 			_.each( properties, function( propertyValue, propertyName ) {
 				var setting, settingId;
-				settingId = 'featured_item[' + String( item.id ) + '][' + propertyName + ']';
+				settingId = panel.getPropertySettingId( item.id, propertyName );
 				setting = api( settingId );
 				if ( ! setting ) {
-
-					// @todo Params here are not DRY with what is defined in Featured_Item_Property_Customize_Setting.
 					setting = new Setting( settingId, propertyValue, {
-						type: 'featured_item_property',
 						transport: 'postMessage',
 						previewer: api.previewer,
-						dirty: args.dirty
+						dirty: item.hasChanged()
 					} );
 					api.add( settingId, setting );
-					if ( args.dirty ) {
+
+					if ( item.hasChanged() ) {
 						setting.preview(); // Make sure setting is sent to the preview.
 					}
 				}
-
-				item.customizeSettings[ propertyName ] = setting;
-				setting.wpApiModel = item;
 			} );
+		},
+
+		/**
+		 * Compute ID for a featured item section.
+		 *
+		 * @param {int} itemId - Featured item ID.
+		 * @returns {string} Section ID.
+		 */
+		getSectionId: function( itemId ) {
+			if ( 'number' !== typeof itemId ) {
+				throw new Error( 'Expected itemId as number' );
+			}
+			return 'featured_item[' + String( itemId ) + ']';
+		},
+
+		/**
+		 * Compute ID for a featured item section.
+		 *
+		 * @todo Move to base namespace?
+		 *
+		 * @param {int} itemId - Featured item ID.
+		 * @param {string} propertyName - Property name.
+		 * @returns {string} Setting ID.
+		 */
+		getPropertySettingId: function( itemId, propertyName ) {
+			if ( 'number' !== typeof itemId ) {
+				throw new Error( 'Expected itemId as number' );
+			}
+			if ( 'string' !== typeof propertyName ) {
+				throw new Error( 'Expected propertyName as string' );
+			}
+			return 'featured_item[' + String( itemId ) + '][' + propertyName + ']';
+		},
+
+		/**
+		 * Get the setting property for a given featured item ID.
+		 *
+		 * @todo Move to base namespace?
+		 *
+		 * @param {int} itemId - Featured item ID.
+		 * @param {string} propertyName - Property name.
+		 * @returns {wp.customize.Setting|null} Setting or null if it doesn't exist.
+		 */
+		getPropertySetting: function getPropertySetting( itemId, propertyName ) {
+			var panel = this;
+			return api( panel.getPropertySettingId( itemId, propertyName ) ) || null;
 		},
 
 		/**
 		 * Add a section for a featured item.
 		 *
-		 * @param {wp.customize.settingConstructor.featured_item_property} setting - Featured item setting.
+		 * @param {panel.FeaturedItem} item - Featured item.
 		 * @returns {wp.customize.Section} Added section (or existing section if it already existed).
 		 */
-		addSection: function addSection( setting ) {
+		ensureSection: function ensureSection( item ) {
 			var panel = this, section, sectionId, Section;
 
 			// Strip off property component from setting ID to obtain section ID.
-			sectionId = setting.id.replace( /\[\w+]$/, '' );
+			sectionId = panel.getSectionId( item.id );
 
 			if ( api.section.has( sectionId ) ) {
 				return api.section( sectionId );
@@ -294,15 +323,31 @@ wp.customize.panelConstructor.featured_items = (function( api, $ ) {
 		 * @returns {void}
 		 */
 		purgeTrashedItems: function purgeTrashedItems() {
-			var panel = this;
-			api.section.each( function( section ) {
-				if ( ! section.extended( api.sectionConstructor.featured_item ) || ! api.has( section.id + '[status]' ) ) {
+			var panel = this, removedItems = [];
+
+			panel.itemsCollection.each( function( item ) {
+				var section, statusSetting;
+				statusSetting = panel.getPropertySetting( item.id, 'status' );
+				if ( ! statusSetting || 'trash' !== statusSetting.get() ) {
 					return;
 				}
-				if ( 'trash' === api( section.id + '[status]' ).get() ) {
+
+				// Remove the section (reverse of ensureSection).
+				section = api.section( panel.getSectionId( item.id ) );
+				if ( section ) {
 					panel.removeSection( section );
 				}
+
+				// Purge the settings associated the section (reverse of ensureSettings).
+				_.each( _.keys( item.attributes ), function( propertyName ) {
+					api.remove( panel.getPropertySettingId( item.id, propertyName ) );
+				} );
+
+				removedItems.push( item );
 			} );
+
+			// Finally remove the reference to the item.
+			panel.itemsCollection.remove( removedItems );
 		},
 
 		/**
@@ -312,10 +357,22 @@ wp.customize.panelConstructor.featured_items = (function( api, $ ) {
 		 * @returns {void}
 		 */
 		removeSection: function removeSection( section ) {
-			section.collapse();
-			section.container.remove();
-			section.panel.set( '' );
-			api.section.remove( section.id );
+
+			// Collapse the section before removing its contents.
+			section.collapse( {
+				completeCallback: function() {
+
+					// Remove all controls in the section.
+					_.each( section.controls(), function( control ) {
+						api.control.remove( control.id );
+						control.container.remove(); // Core should do this automatically. See <https://core.trac.wordpress.org/ticket/31334>.
+					} );
+
+					// Remove the section.
+					section.container.remove(); // Core should do this automatically. See <https://core.trac.wordpress.org/ticket/31334>.
+					api.section.remove( section.id );
+				}
+			} );
 		}
 
 	});
