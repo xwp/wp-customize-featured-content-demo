@@ -16,12 +16,17 @@ wp.customize.selectiveRefresh.partialConstructor.featured_item = (function( api,
 		/**
 		 * Constructor.
 		 *
+		 * @inheritDoc
+		 *
 		 * @param {string} id - Partial ID.
 		 * @param {Object} options - Options.
 		 */
-		initialize: function( id, options ) {
+		initialize: function initialize( id, options ) {
 			var partial = this;
 			api.selectiveRefresh.Partial.prototype.initialize.call( partial, id, options );
+
+			// This is needed to enable shift-click-to-edit support; it should be the default in core.
+			partial.params.selector = '[data-customize-partial-id="' + id + '"]';
 
 			partial.params.containerInclusive = true;
 			partial.params.fallbackRefresh = false;
@@ -32,6 +37,16 @@ wp.customize.selectiveRefresh.partialConstructor.featured_item = (function( api,
 					return partial.id + '[' + propertyName + ']';
 				} );
 			} );
+		},
+
+		/**
+		 * Ready
+		 *
+		 * @inheritDoc
+		 */
+		ready: function ready() {
+			var partial = this;
+			api.selectiveRefresh.Partial.prototype.ready.call( partial );
 
 			/*
 			 * Use JS for instant low-fidelity preview of changes to the title
@@ -39,8 +54,19 @@ wp.customize.selectiveRefresh.partialConstructor.featured_item = (function( api,
 			 * the selective refresh response. Note that the core themes implement
 			 * this same approach for previewing changes to the site title and tagline.
 			 */
-			api( id + '[title]', function( titleSetting ) {
+			api( partial.id + '[title]', function( titleSetting ) {
 				titleSetting.bind( function( newTitle ) {
+
+					/*
+					 * Skip updating if the setting is not associated with the partial.
+					 * This is particularly relevant when doing inline editing, since
+					 * the title setting is temporarily removed from being associated
+					 * with the partial while editing is being done.
+					 */
+					if ( -1 === _.indexOf( partial.params.settings, titleSetting.id ) ) {
+						return;
+					}
+
 					_.each( partial.placements(), function( placement ) {
 						placement.container.find( '.title' ).text( newTitle );
 					} );
@@ -54,7 +80,7 @@ wp.customize.selectiveRefresh.partialConstructor.featured_item = (function( api,
 			 * So any updates to the position setting are excluded from causing
 			 * refresh requests in the isRelatedSetting subclassed method.
 			 */
-			api( id + '[position]', function( positionSetting ) {
+			api( partial.id + '[position]', function( positionSetting ) {
 				positionSetting.bind( function() {
 					partial.repositionPlacements();
 				} );
@@ -63,7 +89,7 @@ wp.customize.selectiveRefresh.partialConstructor.featured_item = (function( api,
 			/*
 			 * Instantly toggle the visibility of the placements on status change.
 			 */
-			api( id + '[status]', function( statusSetting ) {
+			api( partial.id + '[status]', function( statusSetting ) {
 				statusSetting.bind( function( newStatus ) {
 					_.each( partial.placements(), function( placement ) {
 						placement.container.toggle( 'publish' === newStatus );
@@ -78,7 +104,7 @@ wp.customize.selectiveRefresh.partialConstructor.featured_item = (function( api,
 			 * item. This ensures that the featured item partial will refresh
 			 * when the related post is changed, including changes to its featured image.
 			 */
-			api( id + '[related]', function( relatedSetting ) {
+			api( partial.id + '[related]', function( relatedSetting ) {
 				var updateRelatedPostSettings = function( newRelatedPostId, oldRelatedPostId ) {
 					partial.params.settings = _.without(
 						partial.params.settings,
@@ -134,6 +160,8 @@ wp.customize.selectiveRefresh.partialConstructor.featured_item = (function( api,
 		 *
 		 * Inject missing placements if none found (due to having been previously trashed or having been just added).
 		 *
+		 * @inheritDoc
+		 *
 		 * @return {Array.<wp.customize.selectiveRefresh.Placement>}
 		 */
 		placements: function placements() {
@@ -183,6 +211,33 @@ wp.customize.selectiveRefresh.partialConstructor.featured_item = (function( api,
 					itemsContainer.append( itemContainer );
 				} );
 			} );
+		},
+
+		/**
+		 * Create and show the edit shortcut for a given partial placement container.
+		 *
+		 * @inheritDoc
+		 *
+		 * @param {Placement} placement The placement container element.
+		 * @returns {void}
+		 */
+		createEditShortcutForPlacement: function createEditShortcutForPlacement( placement ) {
+			var partial = this, titleInlineEditing;
+			api.selectiveRefresh.Partial.prototype.createEditShortcutForPlacement.call( partial, placement );
+
+			titleInlineEditing = new api.featuredContent.PropertyInlineEditing( {
+				placement: placement,
+				property: 'title',
+				selector: '.title'
+			} );
+
+			/*
+			 * Note that when a refresh happens this object and its event handlers should be garbage-collected.
+			 * Each time a refresh is done, the elements in the placement.container are replaced.
+			 */
+			titleInlineEditing.addEventHandlers();
+
+			// @todo Add shift-click for featured image and excerpt.
 		}
 	});
 

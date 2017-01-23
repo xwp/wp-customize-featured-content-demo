@@ -181,12 +181,21 @@ class Plugin {
 		);
 		$wp_scripts->add( $handle, $src, $deps, $this->version );
 
+		// Inline editing.
+		$handle = 'customize-featured-item-property-inline-editing';
+		$src = $plugin_dir_url . 'js/featured-image-property-inline-editing.js';
+		$deps = array(
+			'customize-featured-content-demo-base', // For namespace.
+		);
+		$wp_scripts->add( $handle, $src, $deps, $this->version );
+
 		// Partial.
 		$handle = 'customize-featured-item-partial';
 		$src = $plugin_dir_url . 'js/featured-item-partial.js';
 		$deps = array(
 			'wp-api',
 			'customize-selective-refresh',
+			'customize-featured-item-property-inline-editing',
 		);
 		$wp_scripts->add( $handle, $src, $deps, $this->version );
 
@@ -194,9 +203,9 @@ class Plugin {
 		$handle = 'customize-featured-content-demo-preview';
 		$src = $plugin_dir_url . 'js/preview.js';
 		$deps = array(
+			'customize-preview',
 			'customize-featured-content-demo-base',
 			'customize-featured-item-partial',
-			'customize-preview',
 		);
 		$wp_scripts->add( $handle, $src, $deps, $this->version );
 	}
