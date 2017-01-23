@@ -50,6 +50,7 @@ class Customizer {
 		add_action( 'customize_preview_init', array( $this, 'preview_items_list' ) );
 
 		add_action( 'customize_controls_enqueue_scripts', array( $this, 'enqueue_pane_dependencies' ) );
+		add_action( 'customize_controls_print_footer_scripts', array( $this, 'print_templates' ) );
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_preview_dependencies' ) );
 	}
 
@@ -57,10 +58,34 @@ class Customizer {
 	 * Enqueue scripts and styles for the Customizer pane (controls).
 	 */
 	function enqueue_pane_dependencies() {
+
+		// Add just-in-time dependency if the Customize Object Selector plugin is active.
+		if ( wp_script_is( 'customize-object-selector-control', 'registered' ) ) {
+			wp_scripts()->registered['customize-featured-item-section']->deps[] = 'customize-object-selector-control';
+		}
+
 		$handle = 'customize-featured-content-demo-pane';
 		wp_enqueue_script( $handle );
 		wp_add_inline_script( $handle, 'wp.customize.featuredContent.pane.initialize();' );
 		wp_enqueue_style( $handle );
+	}
+
+	/**
+	 * Print any additional templates needed.
+	 */
+	function print_templates() {
+		?>
+		<script id="tmpl-message-customize-control" type="text/template">
+			<li class="customize-control message-control">
+				<# if ( data.label ) { #>
+					<span class="customize-control-title">{{ data.label }}</span>
+				<# } #>
+				<div class="notice notice-{{ data.type || 'info' }}">
+					<p>{{{ data.message }}}</p>
+				</div>
+			</li>
+		</script>
+		<?php
 	}
 
 	/**

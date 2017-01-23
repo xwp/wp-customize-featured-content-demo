@@ -60,31 +60,11 @@ class Plugin {
 	}
 
 	/**
-	 * Get Customize Object Selector Plugin.
-	 *
-	 * @global \CustomizeObjectSelector\Plugin $customize_object_selector_plugin
-	 * @return \CustomizeObjectSelector\Plugin|null Plugin or null if not active.
-	 */
-	public function get_customize_object_selector_plugin() {
-		global $customize_object_selector_plugin;
-		if ( ! empty( $customize_object_selector_plugin ) && 'CustomizeObjectSelector\Plugin' === get_class( $customize_object_selector_plugin ) ) {
-			return $customize_object_selector_plugin;
-		} else {
-			return null;
-		}
-	}
-
-	/**
 	 * Add hooks.
 	 *
 	 * @access public
 	 */
 	public function init() {
-		if ( ! $this->get_customize_object_selector_plugin() ) {
-			add_action( 'admin_notices', array( $this, 'print_admin_notice_missing_plugin_dependency' ) );
-			return;
-		}
-
 		$this->model = new Model( $this );
 		$this->model->add_hooks();
 
@@ -98,17 +78,6 @@ class Plugin {
 		add_action( 'wp_default_styles', array( $this, 'register_styles' ), 20 );
 
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_frontend_dependencies' ) );
-	}
-
-	/**
-	 * Show admin notice when the JS Widgets plugin is not active.
-	 */
-	public function print_admin_notice_missing_plugin_dependency() {
-		?>
-		<div class="error">
-			<p><?php esc_html_e( 'The Customize Featured Content plugin depends on the Customize Object Selector plugin to be installed and active.', 'customize-featured-content-demo' ) ?></p>
-		</div>
-		<?php
 	}
 
 	/**
@@ -158,7 +127,6 @@ class Plugin {
 			'customize-dynamic-control',
 			'customize-featured-content-demo-base',
 			'customize-controls',
-			'customize-object-selector-control',
 			'featured-item-status-control',
 		);
 		$wp_scripts->add( $handle, $src, $deps, $this->version );
@@ -179,11 +147,12 @@ class Plugin {
 				'url_label' => __( 'URL (Override)', 'customize-featured-content-demo' ),
 				'url_placeholder' => __( 'https://...', 'customize-featured-content-demo' ),
 				'related_label' => __( 'Related item (Optional)', 'customize-featured-content-demo' ),
+				'related_plugin_dependency' => __( 'The <a href="https://wordpress.org/plugins/customize-object-selector/" target="_blank">Customize Object Selector</a> plugin must be installed and activated to select a related post.', 'customize-featured-content-demo' ),
 				'related_placeholder' => __( 'Search items', 'customize-featured-content-demo' ),
 				'title_label' => __( 'Title (Override)', 'customize-featured-content-demo' ),
 				'excerpt_label' => __( 'Description (Override)', 'customize-featured-content-demo' ),
 				'position_label' => __( 'Position', 'customize-featured-content-demo' ),
-				'status_label' => __( 'Status:', 'customize-featured-content-demo' ),
+				'status_label' => __( 'Status', 'customize-featured-content-demo' ),
 				'customize_action' => __( 'Customizing featured item:', 'customize-featured-content-demo' ),
 			) )
 		) );
@@ -241,7 +210,7 @@ class Plugin {
 
 		$handle = 'customize-featured-content-demo-pane';
 		$src = $plugin_dir_url . 'css/pane.css';
-		$deps = array( 'customize-controls', 'customize-object-selector' );
+		$deps = array( 'customize-controls' );
 		$wp_styles->add( $handle, $src, $deps, $this->version );
 
 		$handle = 'customize-featured-content-demo-preview';
