@@ -407,6 +407,7 @@ class Model {
 			'can_export' => true,
 			'supports' => array( 'title', 'excerpt', 'thumbnail' ),
 			'capability_type' => 'page', // Allow anyone who can manage pages to manage featured items.
+			'map_meta_cap' => true,
 			'show_in_rest' => true,
 			'rest_base' => 'featured-items',
 			'rest_controller_class' => __NAMESPACE__ . '\\REST_Controller',

@@ -33,21 +33,23 @@ wp.customize.panelConstructor.featured_items = (function( api, $ ) {
 		 * @returns {void}
 		 */
 		ready: function() {
-			var panel = this;
+			var panel = this, onceActive;
 			api.Panel.prototype.ready.call( panel );
 
-			// @todo Core should define not call ready for a panel until ready has been triggered.
-			api.bind( 'ready', function() {
-				panel.loadItems().done( function() {
-					panel.injectAdditionButton();
-					panel.setupSectionSorting();
-					api.bind( 'saved', function( data ) {
-						if ( 'publish' === data.changeset_status ) {
-							panel.purgeTrashedItems();
-						}
-					} );
-				} );
-			} );
+			panel.loading = new api.Value();
+
+			// Finish initialization once the panel is active/contextual.
+			if ( panel.active.get() ) {
+				panel.finishInitialization();
+			} else {
+				onceActive = function( isActive ) {
+					if ( isActive ) {
+						panel.active.unbind( onceActive );
+						panel.finishInitialization();
+					}
+				};
+				panel.active.bind( onceActive );
+			}
 
 			// @todo Core should be doing this automatically. See <https://core.trac.wordpress.org/ticket/39663>.
 			panel.active.bind( function( isActive ) {
@@ -58,9 +60,32 @@ wp.customize.panelConstructor.featured_items = (function( api, $ ) {
 		},
 
 		/**
-		 * Load items.
+		 * Finish initialization.
 		 *
-		 * @todo Defer this until the panel is expanded? Lazy loaded when needed? But then partials in preview won't be initialized.
+		 * This an example of lazy-loading settings, sections, and controls
+		 * only when they are contextual to what is being previewed.
+		 *
+		 * @link https://core.trac.wordpress.org/ticket/28580
+		 * @returns {void}
+		 */
+		finishInitialization: function() {
+			var panel = this;
+
+			panel.injectAdditionButton();
+			panel.loading.set( true ); // Show spinner.
+			panel.loadItems().done( function() {
+				panel.loading.set( false ); // Hide spinner and enable addition button.
+				panel.setupSectionSorting();
+				api.bind( 'saved', function( data ) {
+					if ( 'publish' === data.changeset_status ) {
+						panel.purgeTrashedItems();
+					}
+				} );
+			} );
+		},
+
+		/**
+		 * Load items.
 		 *
 		 * @returns {void}
 		 */
@@ -83,11 +108,20 @@ wp.customize.panelConstructor.featured_items = (function( api, $ ) {
 					panel.ensureSection( item );
 				} );
 
-				// @todo The trashed items in the state are not getting included.
 				// Ensure customized state is applied in the response.
 				queryParams = api.previewer.query();
 				delete queryParams.customized; // No POST data would be queued for saving to changeset.
+
+				// Let the related posts and featured images be embedded to reduce subsequent calls.
 				queryParams._embed = true;
+
+				// Request trashed items that are referenced in the current changeset (as otherwise they would be excluded).
+				queryParams.with_trashed = [];
+				api.each( function( setting ) {
+					if ( setting.extended( api.settingConstructor.featured_item_property ) && 'status' === setting.property && 'trash' === setting.get() ) {
+						queryParams.with_trashed.push( setting.postId );
+					}
+				} );
 
 				panel.itemsCollection.fetch( { data: queryParams } ).fail( reject ).done( function() {
 					deferred.resolve();
@@ -99,7 +133,7 @@ wp.customize.panelConstructor.featured_items = (function( api, $ ) {
 		/**
 		 * Create a featured item section when a featured item setting is added.
 		 *
-		 * @returns {void}
+		 * @returns {jQuery}
 		 */
 		injectAdditionButton: function injectAdditionButton() {
 			var panel = this, container, button, additionFailure;
@@ -109,8 +143,7 @@ wp.customize.panelConstructor.featured_items = (function( api, $ ) {
 			additionFailure = container.find( '.addition-failure' );
 			button.on( 'click', function() {
 				var promise = panel.createItem();
-				button.prop( 'disabled', true );
-				button.addClass( 'progress' );
+				panel.loading.set( true );
 				additionFailure.slideUp();
 				promise.fail( function() {
 					additionFailure.stop().slideDown();
@@ -126,12 +159,18 @@ wp.customize.panelConstructor.featured_items = (function( api, $ ) {
 					} );
 				} );
 				promise.always( function() {
-					button.prop( 'disabled', false );
-					button.removeClass( 'progress' );
+					panel.loading.set( false );
 				} );
 			} );
 
 			panel.contentContainer.find( '.panel-meta:first' ).append( container );
+
+			panel.loading.bind( function( isLoading ) {
+				button.prop( 'disabled', isLoading );
+				button.toggleClass( 'progress', isLoading );
+			} );
+
+			return button;
 		},
 
 		/**

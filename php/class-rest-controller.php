@@ -246,6 +246,23 @@ class REST_Controller extends \WP_REST_Posts_Controller {
 	}
 
 	/**
+	 * Checks if a given request has access to read posts.
+	 *
+	 * @param \WP_REST_Request $request Full details about the request.
+	 * @return true|\WP_Error True if the request has read access, WP_Error object otherwise.
+	 */
+	public function get_items_permissions_check( $request ) {
+		$validity = parent::get_items_permissions_check( $request );
+		if ( is_wp_error( $validity ) ) {
+			return $validity;
+		}
+		if ( count( $request['with_trashed'] ) && ! current_user_can( $this->plugin->model->object->cap->delete_posts ) ) {
+			return new \WP_Error( 'forbidden_with_trashed_param', __( 'You are not allowed to access trashed items.', 'customize-featured-content-demo' ), array( 'status' => rest_authorization_required_code() ) );
+		}
+		return true;
+	}
+
+	/**
 	 * Retrieves a collection of items.
 	 *
 	 * @param \WP_REST_Request $request Full details about the request.
@@ -255,8 +272,16 @@ class REST_Controller extends \WP_REST_Posts_Controller {
 		$items = $this->plugin->model->get_items();
 		$response_items = array();
 
-		foreach ( array_keys( $items ) as $id ) {
-			$data = $this->prepare_item_for_response( get_post( $id ), $request );
+		$item_ids = array_keys( $items );
+		foreach ( $request['with_trashed'] as $item_id ) {
+			$item_ids[] = $item_id;
+		}
+		foreach ( $item_ids as $id ) {
+			$post = get_post( $id );
+			if ( ! $this->check_read_permission( $post ) ) {
+				continue;
+			}
+			$data = $this->prepare_item_for_response( $post, $request );
 			$response_items[] = $this->prepare_response_for_collection( $data );
 		}
 
@@ -279,6 +304,14 @@ class REST_Controller extends \WP_REST_Posts_Controller {
 	public function get_collection_params() {
 		return array(
 			'context' => $this->get_context_param(),
+			'with_trashed' => array(
+				'description' => __( 'Item IDs for additional items amending the results. This is used by the customizer.', 'customize-featured-content-demo' ),
+				'type' => 'array',
+				'items' => array(
+					'type' => 'integer',
+				),
+				'default' => array(),
+			),
 		);
 	}
 
