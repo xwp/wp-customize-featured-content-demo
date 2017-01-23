@@ -68,19 +68,22 @@ wp.customize.panelConstructor.featured_items = (function( api, $ ) {
 		 * @link https://core.trac.wordpress.org/ticket/28580
 		 * @returns {void}
 		 */
-		finishInitialization: function() {
+		finishInitialization: function finishInitialization() {
 			var panel = this;
 
 			panel.injectAdditionButton();
-			panel.loading.set( true ); // Show spinner.
+			panel.setupSectionSorting();
+
+			// Purge trashed items when the changeset is published.
+			api.bind( 'saved', function( data ) {
+				if ( 'publish' === data.changeset_status ) {
+					panel.purgeTrashedItems();
+				}
+			} );
+
+			panel.loading.set( true ); // Show spinner with addition button disabled.
 			panel.loadItems().done( function() {
 				panel.loading.set( false ); // Hide spinner and enable addition button.
-				panel.setupSectionSorting();
-				api.bind( 'saved', function( data ) {
-					if ( 'publish' === data.changeset_status ) {
-						panel.purgeTrashedItems();
-					}
-				} );
 			} );
 		},
 
