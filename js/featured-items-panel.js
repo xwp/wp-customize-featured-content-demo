@@ -81,6 +81,7 @@ wp.customize.panelConstructor.featured_items = (function( api, $ ) {
 				}
 			} );
 
+			// @todo Show error when the collection request fails.
 			panel.loading.set( true ); // Show spinner with addition button disabled.
 			panel.loadItems().done( function() {
 				panel.loading.set( false ); // Hide spinner and enable addition button.
@@ -98,14 +99,31 @@ wp.customize.panelConstructor.featured_items = (function( api, $ ) {
 				deferred.reject( err );
 			};
 			wp.api.init().fail( reject ).done( function() {
-				var queryParams;
-				if ( ! wp.api.collections['Featured-items'] || ! wp.api.models['Featured-items'] ) {
+				var queryParams, modelName = 'Featured-items';
+				if ( ! wp.api.collections[ modelName ] || ! wp.api.models[ modelName ] ) {
 					deferred.reject( 'Missing collection for featured-items.' );
 					return;
 				}
-				panel.FeaturedItem = wp.api.models['Featured-items']; // @todo Add better mapping.
+				panel.FeaturedItem = wp.api.models[ modelName ];
 
-				panel.itemsCollection = new wp.api.collections['Featured-items'](); // @todo Add better mapping.
+				/**
+				 * Get related post.
+				 *
+				 * @this {Backbone.Model}
+				 * @return {Deferred.promise}
+				 */
+				panel.FeaturedItem.prototype.getRelatedPost = function getRelatedPost() {
+					var item = this; // eslint-disable-line consistent-this
+					return panel.buildModelGetter(
+						item,
+						item.get( 'related' ),
+						'Post',
+						'related',
+						'title'
+					);
+				};
+
+				panel.itemsCollection = new wp.api.collections[ modelName ]();
 				panel.itemsCollection.on( 'add', function( item ) {
 					panel.ensureSettings( item );
 					panel.ensureSection( item );
@@ -323,7 +341,8 @@ wp.customize.panelConstructor.featured_items = (function( api, $ ) {
 				params: {
 					id: sectionId,
 					panel: panel.id,
-					active: true
+					active: true,
+					item: item
 				}
 			});
 			api.section.add( sectionId, section );
@@ -414,6 +433,71 @@ wp.customize.panelConstructor.featured_items = (function( api, $ ) {
 					api.section.remove( section.id );
 				}
 			} );
+		},
+
+		/**
+		 * Build a helper function to retrieve related model.
+		 *
+		 * This is forked from wp-api.js
+		 *
+		 * @param  {Backbone.Model} parentModel      The parent model.
+		 * @param  {int}            modelId          The model ID if the object to request
+		 * @param  {string}         modelName        The model name to use when constructing the model.
+		 * @param  {string}         embedSourcePoint Where to check the embedds object for _embed data.
+		 * @param  {string}         embedCheckField  Which model field to check to see if the model has data.
+		 * @return {Deferred.promise}        A promise which resolves to the constructed model.
+		 */
+		buildModelGetter: function buildModelGetter( parentModel, modelId, modelName, embedSourcePoint, embedCheckField ) {
+			var getModel, embeddeds, attributes, deferred;
+
+			deferred  = jQuery.Deferred();
+			embeddeds = parentModel.get( '_embedded' ) || {};
+
+			// Verify that we have a valid object id.
+			if ( ! _.isNumber( modelId ) || 0 === modelId ) {
+				deferred.reject();
+				return deferred;
+			}
+
+			// If we have embedded object data, use that when constructing the getModel.
+			if ( embeddeds[ embedSourcePoint ] ) {
+				attributes = _.findWhere( embeddeds[ embedSourcePoint ], { id: modelId } );
+			}
+
+			// Otherwise use the modelId.
+			if ( ! attributes ) {
+				attributes = { id: modelId };
+			}
+
+			// Create the new getModel model.
+			getModel = new wp.api.models[ modelName ]( attributes );
+
+			if ( ! getModel.get( embedCheckField ) ) {
+				getModel.fetch( {
+					success: function( getModel ) {
+						/* >>>>>>>>>>>> BEGIN PATCH TO CACHE EMBEDDED */
+						var updatedEmbeddeds = _.clone( parentModel.get( '_embedded' ) || {} );
+						if ( ! updatedEmbeddeds[ embedSourcePoint ] ) {
+							updatedEmbeddeds[ embedSourcePoint ] = [];
+						}
+						updatedEmbeddeds[ embedSourcePoint ].push( getModel.attributes );
+						parentModel.set( '_embedded', updatedEmbeddeds );
+						/* <<<<<<<<<<<<< END PATCH TO CACHE EMBEDDED */
+
+						deferred.resolve( getModel );
+					},
+					error: function( getModel, response ) {
+						deferred.reject( response );
+					}
+				} );
+			} else {
+
+				// Resolve with the embedded model.
+				deferred.resolve( getModel );
+			}
+
+			// Return a promise.
+			return deferred.promise();
 		}
 
 	});

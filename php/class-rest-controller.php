@@ -227,7 +227,7 @@ class REST_Controller extends \WP_REST_Posts_Controller {
 
 		$response->add_links( $this->prepare_links( $post ) );
 
-		$related_post = ! empty( $data['related'] ) ? get_post( $data['related'] ) : null;
+		$related_post = $item['related'] ? get_post( $item['related'] ) : null;
 		if ( $related_post ) {
 			$post_type_obj = get_post_type_object( $related_post->post_type );
 			$rest_base = $post_type_obj && ! empty( $post_type_obj->rest_base ) ? $post_type_obj->rest_base : $related_post->post_type;

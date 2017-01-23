@@ -93,7 +93,8 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 			var section = this;
 			api.Section.prototype.ready.call( section );
 
-			section.syncTitle();
+			section.syncTitleWithUI();
+			section.syncStatusWithUI();
 			section.addFeaturedImageControl();
 			section.addRelatedPostControl();
 			section.syncPositionAsPriority();
@@ -122,35 +123,67 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 		/**
 		 * Keep the title updated in the UI when the title updates in the setting.
 		 *
-		 * @todo Obtain the title from the related post?
-		 *
 		 * @returns {void}
 		 */
-		syncTitle: function syncTitle() {
-			var section = this, sectionContainer, sectionOuterTitleElement,
-				sectionInnerTitleElement, customizeActionElement;
+		syncTitleWithUI: function syncTitleWithUI() {
+			var section = this, panel, sectionContainer, sectionOuterTitleElement,
+				sectionInnerTitleElement, customizeActionElement, fetchRelatedPostTitle;
 
+			// Obtain the title and watch for changes.
+			section.fallbackTitle = new api.Value( section.l10n.no_title );
+			fetchRelatedPostTitle = function() {
+				section.params.item.getRelatedPost().done( function( post ) {
+					section.fallbackTitle.set( $.trim( post.get( 'title' ).rendered ) || section.l10n.no_title );
+				} ).fail( function() {
+					section.fallbackTitle.set( section.l10n.no_title );
+				} );
+			};
+			fetchRelatedPostTitle();
+			section.params.item.on( 'change:related', function() {
+				fetchRelatedPostTitle();
+			} );
+
+			// Sync the title setting changes back to the Backbone model. TODO: Should this not be done for all by default in ensureSettings?
+			panel = api.panel( section.panel.get() );
+			api( panel.getPropertySettingId( section.params.item.id, 'related' ), function( relatedSetting ) {
+				section.params.item.set( 'related', relatedSetting.get() );
+				relatedSetting.bind( function( newRelated ) {
+					section.params.item.set( 'related', newRelated );
+				} );
+			} );
+
+			// Update the UI title.
 			sectionContainer = section.container.closest( '.accordion-section' );
 			sectionOuterTitleElement = sectionContainer.find( '.accordion-section-title:first' );
 			sectionInnerTitleElement = sectionContainer.find( '.customize-section-title h3' ).first();
 			customizeActionElement = sectionInnerTitleElement.find( '.customize-action' ).first();
 			api( section.params.settingIdBase + '[title]', function( titleSetting ) {
-				var setTitle = function( newTitle ) {
-					var title = $.trim( newTitle ) || section.l10n.no_title;
+				var setTitle = function() {
+					var title = $.trim( titleSetting.get() ) || section.fallbackTitle.get();
 					sectionOuterTitleElement.text( title );
 					sectionInnerTitleElement.text( title );
 					sectionInnerTitleElement.prepend( customizeActionElement );
 				};
 				titleSetting.bind( setTitle );
-				setTitle( titleSetting() );
+				setTitle();
+				section.fallbackTitle.bind( setTitle );
 			} );
 
+		},
+
+		/**
+		 * Keep the status updated in the UI when the status updates in the setting.
+		 *
+		 * @returns {void}
+		 */
+		syncStatusWithUI: function syncTitleWithUI() {
+			var section = this;
 			api( section.params.settingIdBase + '[status]', function( statusSetting ) {
-				var setStatus = function( newStatus ) {
-					section.headContainer.toggleClass( 'trashed', 'trash' === newStatus );
+				var setStatus = function() {
+					section.headContainer.toggleClass( 'trashed', 'trash' === statusSetting() );
 				};
 				statusSetting.bind( setStatus );
-				setStatus( statusSetting() );
+				setStatus();
 			} );
 		},
 
