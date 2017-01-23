@@ -163,7 +163,7 @@ class View {
 				<?php echo wp_get_attachment_image( $rendered_item['featured_media'], 'thumbnail' ); ?>
 			<?php endif; ?>
 			<?php if ( $rendered_item['excerpt'] ) : ?>
-				<div class="description">
+				<div class="excerpt">
 					<?php echo $rendered_item['excerpt']; // WPCS: XSS OK. ?>
 				</div>
 			<?php endif; ?>
