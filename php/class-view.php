@@ -46,8 +46,19 @@ class View {
 	 */
 	public function render_items() {
 		$this->render_items_count += 1;
-		echo '<ul class="featured-content-items">';
 		$item_ids = array_keys( $this->plugin->model->get_items() );
+
+		/*
+		 * Render nothing if there are no items and if not in the customizer preview.
+		 * If in the customizer preview, it's key to render the container UL so that
+		 * new items can be added to it when they are created without having to
+		 * refresh the entire page.
+		 */
+		if ( empty( $item_ids ) && ! is_customize_preview() ) {
+			return;
+		}
+
+		echo '<ul class="featured-content-items">';
 		foreach ( $item_ids as $item_id ) {
 			$this->render_item( $item_id );
 		}

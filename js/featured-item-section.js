@@ -27,6 +27,7 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 				frame_title: '{missing_text:featured_image_button_labels.frame_title}'
 			},
 			related_label: '{missing_text:related_label}',
+			related_plugin_dependency: '{missing_text:related_plugin_dependency}',
 			url_label: '{missing_text:url_label}',
 			url_placeholder: '{missing_text:url_placeholder}',
 			related_placeholder: '{missing_text:related_placeholder}',
@@ -159,31 +160,46 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 		 * @returns {wp.customize.Control} Added control.
 		 */
 		addRelatedPostControl: function addRelatedPostControl() {
-			var section = this, control, customizeId;
+			var section = this, control, customizeId, params;
 			customizeId = section.params.settingIdBase + '[related]'; // Both the the ID for the control and the setting.
 
-			control = new api.controlConstructor.object_selector( customizeId, {
-				params: {
-					section: section.id,
-					priority: section.controlPriorities.related,
-					label: section.l10n.related_label,
-					active: true,
-					settings: {
-						'default': customizeId
-					},
-					field_type: 'select',
-					post_query_vars: {
-						post_type: [ 'post' ],
-						post_status: 'publish'
-					},
-					show_add_buttons: false,
-					select2_options: {
-						multiple: false,
-						allowClear: true,
-						placeholder: section.l10n.related_placeholder
-					}
+			params = {
+				section: section.id,
+				priority: section.controlPriorities.related,
+				label: section.l10n.related_label,
+				active: true,
+				settings: {
+					'default': customizeId
 				}
-			} );
+			};
+			if ( api.controlConstructor.object_selector ) {
+				control = new api.controlConstructor.object_selector( customizeId, {
+					params: _.extend( params, {
+						post_query_vars: {
+							post_type: [ 'post' ],
+							post_status: 'publish'
+						},
+						show_add_buttons: false,
+						select2_options: {
+							multiple: false,
+							allowClear: true,
+							placeholder: section.l10n.related_placeholder
+						}
+					} )
+				} );
+			} else {
+
+				// Add an ad hoc control for displaying an informational message.
+				control = new api.Control( customizeId, {
+					params: _.extend( params, {
+						settings: {}, // Setting-less control.
+						content: wp.template( 'message-customize-control' )( {
+							label: params.label,
+							message: section.l10n.related_plugin_dependency
+						} )
+					} )
+				} );
+			}
 
 			api.control.add( control.id, control );
 
