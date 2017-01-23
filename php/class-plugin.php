@@ -185,6 +185,7 @@ class Plugin {
 		$handle = 'customize-featured-item-partial';
 		$src = $plugin_dir_url . 'js/featured-item-partial.js';
 		$deps = array(
+			'wp-api',
 			'customize-selective-refresh',
 		);
 		$wp_scripts->add( $handle, $src, $deps, $this->version );

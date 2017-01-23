@@ -73,24 +73,4 @@ class Featured_Items_Customize_Panel extends \WP_Customize_Panel {
 	public function active_callback() {
 		return $this->plugin->view->render_items_count > 0;
 	}
-
-	/**
-	 * Gather the parameters passed to client JavaScript via JSON.
-	 *
-	 * Note that this could alternatively be done via:
-	 *
-	 * <code>
-	 * wp_add_inline_script( 'customize-featured-items-panel', sprintf(
-	 *    '_.extend( wp.customize.panelConstructor.featured_items.prototype.defaultItemProperties, %s );',
-	 *    wp_json_encode( $this->plugin->model->get_default_item() )
-	 * ) );
-	 * </code>
-	 *
-	 * @return array The array to be exported to the client as JSON.
-	 */
-	public function json() {
-		$exported = parent::json();
-		$exported['default_item_property_setting_params'] = $this->plugin->customizer->get_default_item_property_setting_params();
-		return $exported;
-	}
 }
