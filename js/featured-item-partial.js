@@ -34,6 +34,20 @@ wp.customize.selectiveRefresh.partialConstructor.featured_item = (function( api,
 			} );
 
 			/*
+			 * Use JS for instant low-fidelity preview of changes to the title
+			 * while waiting for high-fidelity rendering of title to come with
+			 * the selective refresh response. Note that the core themes implement
+			 * this same approach for previewing changes to the site title and tagline.
+			 */
+			api( id + '[title]', function( titleSetting ) {
+				titleSetting.bind( function( newTitle ) {
+					_.each( partial.placements(), function( placement ) {
+						placement.container.find( '.title' ).text( newTitle );
+					} );
+				} );
+			} );
+
+			/*
 			 * Use pure JS to update partial instead of selective refresh server request.
 			 * Since a partial is constrained to the item itself an update the the
 			 * position setting wouldn't have any effect on the placement in the page.
