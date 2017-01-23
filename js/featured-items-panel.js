@@ -249,11 +249,10 @@ wp.customize.panelConstructor.featured_items = (function( api, $ ) {
 						dirty: item.hasChanged()
 					} );
 					api.add( settingId, setting );
-
-					if ( item.hasChanged() ) {
-						setting.preview(); // Make sure setting is sent to the preview.
-					}
 				}
+
+				// Send the setting to the preview to ensure it exists there.
+				setting.previewer.send( 'setting', [ setting.id, setting() ] );
 			} );
 		},
 
