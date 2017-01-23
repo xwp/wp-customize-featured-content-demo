@@ -1,4 +1,4 @@
-/* global wp, console */
+/* global wp */
 
 wp.customize.featuredContent.preview = (function( api ) {
 	'use strict';
