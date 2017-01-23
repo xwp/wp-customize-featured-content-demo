@@ -36,9 +36,11 @@ wp.customize.panelConstructor.featured_items = (function( api, $ ) {
 
 			panel.injectAdditionButton();
 			panel.setupSectionSorting();
-			api.bind( 'ready', function() { // Because api.state is not read until then.
-				panel.loadItems();
-				panel.handleChagesetPublish();
+			panel.loadItems();
+			api.bind( 'saved', function( data ) {
+				if ( 'publish' === data.changeset_status ) {
+					panel.purgeTrashedItems();
+				}
 			} );
 
 			// @todo Core should be doing this automatically. See <https://core.trac.wordpress.org/ticket/39663>.
@@ -285,22 +287,21 @@ wp.customize.panelConstructor.featured_items = (function( api, $ ) {
 		},
 
 		/**
-		 * Handle publishing (saving) of changeset.
+		 * Purge the trashed items.
+		 *
+		 * This is called when the changeset is published.
 		 *
 		 * @returns {void}
 		 */
-		handleChagesetPublish: function handleChagesetPublish() {
+		purgeTrashedItems: function purgeTrashedItems() {
 			var panel = this;
-			api.state( 'changesetStatus' ).bind( function( newStatus ) {
-				if ( 'publish' !== newStatus ) {
+			api.section.each( function( section ) {
+				if ( ! section.extended( api.sectionConstructor.featured_item ) || ! api.has( section.id + '[status]' ) ) {
 					return;
 				}
-
-				api.section.each( function( section ) {
-					if ( section.extended( api.sectionConstructor.featured_item ) && api.has( section.id + '[status]' ) && 'trash' === api( section.id + '[status]' ).get() ) {
-						panel.removeSection( section );
-					}
-				} );
+				if ( 'trash' === api( section.id + '[status]' ).get() ) {
+					panel.removeSection( section );
+				}
 			} );
 		},
 

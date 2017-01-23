@@ -1,4 +1,4 @@
-/* global wp, wpApiSettings */
+/* global wp */
 /* eslint consistent-this: [ "error", "partial" ], no-magic-numbers: [ "error", { "ignore": [-1,0,1] } ] */
 
 wp.customize.selectiveRefresh.partialConstructor.featured_item = (function( api, $ ) {
