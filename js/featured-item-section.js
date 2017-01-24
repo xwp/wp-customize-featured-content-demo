@@ -119,6 +119,7 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 				section.expanded.bind( onceExpanded );
 			}
 
+			// Provide an assist for focus-control-for-setting for lazy-loaded controls.
 			api.previewer.bind( 'focus-control-for-setting', function focusControlForSetting( settingId ) {
 
 				/*
