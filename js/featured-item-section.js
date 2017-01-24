@@ -90,11 +90,54 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 		 * @returns {void}
 		 */
 		ready: function() {
-			var section = this;
+			var section = this, onceExpanded;
 			api.Section.prototype.ready.call( section );
 
 			section.syncTitleWithUI();
 			section.syncStatusWithUI();
+
+			/*
+			 * Defer adding controls until the section is actually expanded.
+			 * Since the controls for related post and featured image make
+			 * ajax requests, this is necessary to prevent slamming the server
+			 * with many requests at once for all of the featured items together.
+			 *
+			 * @todo Make sure that controls get embedded if attempting to focus on a control from the preview.
+			 */
+			onceExpanded = function( isExpanded ) {
+				if ( isExpanded ) {
+					section.addControls();
+					section.expanded.unbind( onceExpanded );
+				}
+			};
+			if ( section.expanded() ) {
+				onceExpanded();
+			} else {
+				section.expanded.bind( onceExpanded );
+			}
+		},
+
+		/**
+		 * Return whether this section has any active controls.
+		 *
+		 * @inheritDoc
+		 *
+		 * Since controls are dynamically added once the section is expanded,
+		 * this must always return true.
+		 *
+		 * @return {boolean}
+		 */
+		isContextuallyActive: function() {
+			return true;
+		},
+
+		/**
+		 * Add controls.
+		 *
+		 * @returns {void}
+		 */
+		addControls: function addControls() {
+			var section = this;
 			section.addFeaturedImageControl();
 			section.addRelatedPostControl();
 			section.syncPositionAsPriority();

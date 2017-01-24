@@ -38,10 +38,14 @@ wp.customize.controlConstructor.featured_item_field = (function( api, $ ) {
 				args.params.content.attr( 'class', 'customize-control customize-control-' + args.params.type );
 			}
 
-			api.Control.prototype.initialize.call( control, id, args );
+			/*
+			 * State to manage the input placeholder value.
+			 * Note that currently this has to be set before initialize is called
+			 * because if the setting already exists it will call ready immediately.
+			 */
+			control.placeholder = new api.Value( args.params.placeholder );
 
-			// State to manage the input placeholder value.
-			control.placeholder = new api.Value( control.params.placeholder );
+			api.Control.prototype.initialize.call( control, id, args );
 		},
 
 		/**
