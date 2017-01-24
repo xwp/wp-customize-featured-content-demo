@@ -136,6 +136,8 @@ wp.customize.panelConstructor.featured_items = (function( api, $ ) {
 				// Let the related posts and featured images be embedded to reduce subsequent calls.
 				queryParams._embed = true;
 
+				queryParams.context = 'edit';
+
 				// Request trashed items that are referenced in the current changeset (as otherwise they would be excluded).
 				queryParams.with_trashed = [];
 				api.each( function( setting ) {

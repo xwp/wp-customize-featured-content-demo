@@ -156,13 +156,20 @@ class REST_Controller extends \WP_REST_Posts_Controller {
 			$raw_field_schema = $rest_field_schema;
 
 			$rest_field_schema = array(
-				'type' => array( 'string', 'object' ),
+				'type' => 'object', // Well, it also allows a string.
+				'context' => array( 'view', 'edit', 'embed' ),
 				'properties' => array(
-					'raw' => $rest_field_schema,
+					'raw' => array_merge(
+						$rest_field_schema,
+						array(
+							'context' => array( 'view', 'edit', 'embed' ),
+						)
+					),
 					'rendered' => array_merge(
 						$rest_field_schema,
 						array(
 							'readonly' => true,
+							'context' => array( 'edit' ),
 						)
 					),
 				),
