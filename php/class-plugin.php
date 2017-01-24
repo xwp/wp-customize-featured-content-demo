@@ -91,17 +91,15 @@ class Plugin {
 	public function register_scripts( \WP_Scripts $wp_scripts ) {
 		$plugin_dir_url = plugin_dir_url( dirname( __FILE__ ) );
 
-		// Register dynamic control if not already registered (via Customize Posts).
-		$handle = 'customize-dynamic-control';
-		if ( ! $wp_scripts->query( $handle, 'registered' ) ) {
-			$src = $plugin_dir_url . 'js/customize-dynamic-control.js';
-			$deps = array( 'customize-base' );
-			$wp_scripts->add( $handle, $src, $deps, $this->version );
-		}
-
 		// Status control.
 		$handle = 'featured-item-status-control';
 		$src = $plugin_dir_url . 'js/featured-item-status-control.js';
+		$deps = array( 'customize-controls' );
+		$wp_scripts->add( $handle, $src, $deps, $this->version );
+
+		// Field control.
+		$handle = 'featured-item-field-control';
+		$src = $plugin_dir_url . 'js/featured-item-field-control.js';
 		$deps = array( 'customize-controls' );
 		$wp_scripts->add( $handle, $src, $deps, $this->version );
 
@@ -124,17 +122,17 @@ class Plugin {
 		$src = $plugin_dir_url . 'js/featured-item-section.js';
 		$deps = array(
 			'customize-featured-item-property-setting',
-			'customize-dynamic-control',
 			'customize-featured-content-demo-base',
 			'customize-controls',
 			'featured-item-status-control',
+			'featured-item-field-control',
 		);
 		$wp_scripts->add( $handle, $src, $deps, $this->version );
 		$wp_scripts->add_inline_script( $handle, sprintf(
 			'_.extend( wp.customize.sectionConstructor.featured_item.prototype.l10n, %s );',
 			wp_json_encode( array(
 				'no_title' => __( '(Untitled)', 'customize-featured-content-demo' ),
-				'featured_media_label' => __( 'Featured Image Override', 'customize-featured-content-demo' ),
+				'featured_media_label' => __( 'Featured Image', 'customize-featured-content-demo' ),
 				'featured_image_button_labels' => array(
 					'select'       => __( 'Select Image', 'customize-featured-content-demo' ),
 					'change'       => __( 'Change Image', 'customize-featured-content-demo' ),
@@ -144,13 +142,13 @@ class Plugin {
 					'frame_title'  => __( 'Select Image', 'customize-featured-content-demo' ),
 					'frame_button' => __( 'Choose Image', 'customize-featured-content-demo' ),
 				),
-				'url_label' => __( 'URL (Override)', 'customize-featured-content-demo' ),
+				'url_label' => __( 'URL', 'customize-featured-content-demo' ),
 				'url_placeholder' => __( 'https://...', 'customize-featured-content-demo' ),
 				'related_label' => __( 'Related item (Optional)', 'customize-featured-content-demo' ),
 				'related_plugin_dependency' => __( 'The <a href="https://wordpress.org/plugins/customize-object-selector/" target="_blank">Customize Object Selector</a> plugin must be installed and activated to select a related post.', 'customize-featured-content-demo' ),
 				'related_placeholder' => __( 'Search items', 'customize-featured-content-demo' ),
-				'title_label' => __( 'Title (Override)', 'customize-featured-content-demo' ),
-				'excerpt_label' => __( 'Description (Override)', 'customize-featured-content-demo' ),
+				'title_label' => __( 'Title', 'customize-featured-content-demo' ),
+				'excerpt_label' => __( 'Excerpt', 'customize-featured-content-demo' ),
 				'position_label' => __( 'Position', 'customize-featured-content-demo' ),
 				'status_label' => __( 'Status', 'customize-featured-content-demo' ),
 				'customize_action' => __( 'Customizing featured item:', 'customize-featured-content-demo' ),

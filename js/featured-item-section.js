@@ -132,7 +132,7 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 			// Obtain the title and watch for changes.
 			section.fallbackTitle = new api.Value( section.l10n.no_title );
 			fetchRelatedPostTitle = function() {
-				section.params.item.getRelatedPost().done( function( post ) {
+				section.getRelatedPost().done( function( post ) {
 					section.fallbackTitle.set( $.trim( post.get( 'title' ).rendered ) || section.l10n.no_title );
 				} ).fail( function() {
 					section.fallbackTitle.set( section.l10n.no_title );
@@ -294,17 +294,36 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 			return control;
 		},
 
+		relatedPostPromises: {},
+
+		/**
+		 * Get related post promise.
+		 *
+		 * This method exists to cache the promises so that multiple calls won't result in multiple API calls being made.
+		 *
+		 * @return {Deferred.promise} Post promise.
+		 */
+		getRelatedPost: function getRelatedPost() {
+			var section = this, related = section.params.item.get( 'related' );
+			if ( ! related ) {
+				return $.Deferred().reject().promise();
+			} else if ( section.relatedPostPromises[ related ] && 'rejected' !== section.relatedPostPromises[ related ].state() ) {
+				return section.relatedPostPromises[ related ];
+			} else {
+				section.relatedPostPromises[ related ] = section.params.item.getRelatedPost();
+				return section.relatedPostPromises[ related ];
+			}
+		},
+
 		/**
 		 * Add title text control.
-		 *
-		 * @todo Add input placeholder to correspond to related post?
 		 *
 		 * @returns {wp.customize.Control} Added control.
 		 */
 		addTitleControl: function addTitleControl() {
-			var section = this, control, customizeId;
+			var section = this, control, customizeId, updateRelatedState;
 			customizeId = section.params.settingIdBase + '[title]'; // Both the the ID for the control and the setting.
-			control = new api.controlConstructor.dynamic( customizeId, {
+			control = new api.controlConstructor.featured_item_field( customizeId, {
 				params: {
 					section: section.id,
 					priority: section.controlPriorities.title,
@@ -313,14 +332,26 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 					settings: {
 						'default': customizeId
 					},
-					field_type: 'text',
-					input_attrs: {
-						'data-customize-setting-link': customizeId
-					}
+					field_type: 'text'
 				}
 			} );
-
 			api.control.add( control.id, control );
+
+			/**
+			 * Update the control in response to changes to the related post.
+			 *
+			 * @returns {void}
+			 */
+			updateRelatedState = function() {
+				control.placeholder.set( '' ); // While waiting for related post to fetch.
+				if ( section.params.item.get( 'related' ) ) {
+					section.getRelatedPost().done( function( post ) {
+						control.placeholder.set( post.get( 'title' ).rendered );
+					} );
+				}
+			};
+			section.params.item.on( 'change:related', updateRelatedState );
+			updateRelatedState();
 
 			/*
 			 * Listen for changes to this setting sent from the preview.
@@ -344,16 +375,14 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 		},
 
 		/**
-		 * Add description text control.
-		 *
-		 * @todo Add input placeholder to correspond to related post?
+		 * Add excerpt text control.
 		 *
 		 * @returns {wp.customize.Control} Added control.
 		 */
 		addExcerptControl: function addExcerptControl() {
-			var section = this, control, customizeId;
+			var section = this, control, customizeId, updateRelatedState;
 			customizeId = section.params.settingIdBase + '[excerpt]'; // Both the the ID for the control and the setting.
-			control = new api.controlConstructor.dynamic( customizeId, {
+			control = new api.controlConstructor.featured_item_field( customizeId, {
 				params: {
 					section: section.id,
 					priority: section.controlPriorities.excerpt,
@@ -362,14 +391,26 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 					settings: {
 						'default': customizeId
 					},
-					field_type: 'textarea',
-					input_attrs: {
-						'data-customize-setting-link': customizeId
-					}
+					field_type: 'textarea'
 				}
 			} );
-
 			api.control.add( control.id, control );
+
+			/**
+			 * Update the control in response to changes to the related post.
+			 *
+			 * @returns {void}
+			 */
+			updateRelatedState = function() {
+				control.placeholder.set( '' );
+				if ( section.params.item.get( 'related' ) ) {
+					section.getRelatedPost().done( function( post ) {
+						control.placeholder.set( $( post.get( 'excerpt' ).rendered ).text() );
+					} );
+				}
+			};
+			section.params.item.on( 'change:related', updateRelatedState );
+			updateRelatedState();
 
 			return control;
 		},
@@ -377,14 +418,12 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 		/**
 		 * Add URL control.
 		 *
-		 * @todo Add input placeholder to correspond to related post?
-		 *
 		 * @returns {wp.customize.Control} Added control.
 		 */
 		addURLControl: function addURLControl() {
-			var section = this, control, customizeId;
+			var section = this, control, customizeId, updateRelatedState;
 			customizeId = section.params.settingIdBase + '[url]'; // Both the the ID for the control and the setting.
-			control = new api.controlConstructor.dynamic( customizeId, {
+			control = new api.controlConstructor.featured_item_field( customizeId, {
 				params: {
 					section: section.id,
 					priority: section.controlPriorities.url,
@@ -393,15 +432,26 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 					settings: {
 						'default': customizeId
 					},
-					field_type: 'url',
-					input_attrs: {
-						'data-customize-setting-link': customizeId,
-						placeholder: section.l10n.url_placeholder
-					}
+					field_type: 'url'
 				}
 			} );
-
 			api.control.add( control.id, control );
+
+			/**
+			 * Update the control in response to changes to the related post.
+			 *
+			 * @returns {void}
+			 */
+			updateRelatedState = function() {
+				control.placeholder.set( section.l10n.url_placeholder ); // While waiting for related post to fetch.
+				if ( section.params.item.get( 'related' ) ) {
+					section.getRelatedPost().done( function( post ) {
+						control.placeholder.set( post.get( 'link' ) );
+					} );
+				}
+			};
+			section.params.item.on( 'change:related', updateRelatedState );
+			updateRelatedState();
 
 			return control;
 		},
