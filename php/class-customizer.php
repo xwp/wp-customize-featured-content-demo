@@ -117,6 +117,7 @@ class Customizer {
 		$panel = new Featured_Items_Customize_Panel( $this->manager, 'featured_items', array(
 			'title' => __( 'Featured Items', 'customize-featured-content-demo' ),
 			'plugin' => $this->plugin,
+			'capability' => $this->plugin->model->object->cap->edit_posts,
 		) );
 
 		/*
