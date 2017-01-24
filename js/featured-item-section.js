@@ -70,7 +70,6 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 				{
 					title: section.l10n.no_title,
 					customizeAction: section.l10n.customize_action,
-					settingIdBase: id,
 					type: 'featured_item' // So that the list item will include the control-section-featured_item class.
 				},
 				args.params || {}
@@ -90,23 +89,27 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 		 * @returns {void}
 		 */
 		ready: function() {
-			var section = this, onceExpanded;
+			var section = this, onceExpanded, controlsNeeded;
 			api.Section.prototype.ready.call( section );
 
 			section.syncTitleWithUI();
+			section.syncPositionAsPriority();
 			section.syncStatusWithUI();
+
+			controlsNeeded = $.Deferred();
+			controlsNeeded.done( function() {
+				section.addControls();
+			} );
 
 			/*
 			 * Defer adding controls until the section is actually expanded.
 			 * Since the controls for related post and featured image make
 			 * ajax requests, this is necessary to prevent slamming the server
 			 * with many requests at once for all of the featured items together.
-			 *
-			 * @todo Make sure that controls get embedded if attempting to focus on a control from the preview.
 			 */
 			onceExpanded = function( isExpanded ) {
 				if ( isExpanded ) {
-					section.addControls();
+					controlsNeeded.resolve();
 					section.expanded.unbind( onceExpanded );
 				}
 			};
@@ -115,6 +118,30 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 			} else {
 				section.expanded.bind( onceExpanded );
 			}
+
+			api.previewer.bind( 'focus-control-for-setting', function focusControlForSetting( settingId ) {
+
+				/*
+				 * By convention, the ID for the section serves as the base for
+				 * the ID for its controls and their settings, so if attempting
+				 * to focus on the control for setting featured_item[1][title],
+				 * then we just need to check if the setting ID starts with
+				 * the ID for this section. If this section is for item 1, then
+				 * this section would have the ID of featured_item[1], and this
+				 * would entail that the controls need to be embedded and the
+				 * control associated with that setting would need to be focused.
+				 * By convention as well the ID for a control matches the ID for
+				 * its related setting.
+				 */
+				if ( 0 === settingId.indexOf( section.id ) ) {
+					controlsNeeded.resolve();
+
+					// Once the control exists, focus on it. The control ID matches the setting ID.
+					api.control( settingId, function( control ) {
+						control.focus();
+					} );
+				}
+			} );
 		},
 
 		/**
@@ -140,7 +167,6 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 			var section = this;
 			section.addFeaturedImageControl();
 			section.addRelatedPostControl();
-			section.syncPositionAsPriority();
 			section.addTitleControl();
 			section.addExcerptControl();
 			section.addURLControl();
@@ -154,12 +180,9 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 		 */
 		syncPositionAsPriority: function syncPositionAsPriority() {
 			var section = this;
-			api( section.params.settingIdBase + '[position]', function( positionSetting ) {
-				var setPriority = function( position ) {
-					section.priority.set( position );
-				};
-				setPriority( positionSetting() );
-				positionSetting.bind( setPriority );
+			api( section.id + '[position]', function( positionSetting ) {
+				section.priority.set( positionSetting.get() );
+				section.priority.link( positionSetting );
 			} );
 		},
 
@@ -200,7 +223,7 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 			sectionOuterTitleElement = sectionContainer.find( '.accordion-section-title:first' );
 			sectionInnerTitleElement = sectionContainer.find( '.customize-section-title h3' ).first();
 			customizeActionElement = sectionInnerTitleElement.find( '.customize-action' ).first();
-			api( section.params.settingIdBase + '[title]', function( titleSetting ) {
+			api( section.id + '[title]', function( titleSetting ) {
 				var setTitle = function() {
 					var title = $.trim( titleSetting.get() ) || section.fallbackTitle.get();
 					sectionOuterTitleElement.text( title );
@@ -221,7 +244,7 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 		 */
 		syncStatusWithUI: function syncTitleWithUI() {
 			var section = this;
-			api( section.params.settingIdBase + '[status]', function( statusSetting ) {
+			api( section.id + '[status]', function( statusSetting ) {
 				var setStatus = function() {
 					section.headContainer.toggleClass( 'trashed', 'trash' === statusSetting() );
 				};
@@ -233,11 +256,13 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 		/**
 		 * Add object selector control.
 		 *
+		 * @todo Update object selector to allow featured images to be displayed in results and in the selection.
+		 *
 		 * @returns {wp.customize.Control} Added control.
 		 */
 		addRelatedPostControl: function addRelatedPostControl() {
 			var section = this, control, customizeId, params;
-			customizeId = section.params.settingIdBase + '[related]'; // Both the the ID for the control and the setting.
+			customizeId = section.id + '[related]'; // Both the the ID for the control and the setting.
 
 			params = {
 				section: section.id,
@@ -289,7 +314,7 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 		 */
 		addFeaturedImageControl: function addFeaturedImageControl() {
 			var section = this, control, customizeId;
-			customizeId = section.params.settingIdBase + '[featured_media]';
+			customizeId = section.id + '[featured_media]';
 
 			control = new api.MediaControl( customizeId, {
 				params: {
@@ -365,7 +390,7 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 		 */
 		addTitleControl: function addTitleControl() {
 			var section = this, control, customizeId, updateRelatedState;
-			customizeId = section.params.settingIdBase + '[title]'; // Both the the ID for the control and the setting.
+			customizeId = section.id + '[title]'; // Both the the ID for the control and the setting.
 			control = new api.controlConstructor.featured_item_field( customizeId, {
 				params: {
 					section: section.id,
@@ -424,7 +449,7 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 		 */
 		addExcerptControl: function addExcerptControl() {
 			var section = this, control, customizeId, updateRelatedState;
-			customizeId = section.params.settingIdBase + '[excerpt]'; // Both the the ID for the control and the setting.
+			customizeId = section.id + '[excerpt]'; // Both the the ID for the control and the setting.
 			control = new api.controlConstructor.featured_item_field( customizeId, {
 				params: {
 					section: section.id,
@@ -465,7 +490,7 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 		 */
 		addURLControl: function addURLControl() {
 			var section = this, control, customizeId, updateRelatedState;
-			customizeId = section.params.settingIdBase + '[url]'; // Both the the ID for the control and the setting.
+			customizeId = section.id + '[url]'; // Both the the ID for the control and the setting.
 			control = new api.controlConstructor.featured_item_field( customizeId, {
 				params: {
 					section: section.id,
@@ -506,7 +531,7 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 		 */
 		addStatusControl: function addStatusControl() {
 			var section = this, control, customizeId;
-			customizeId = section.params.settingIdBase + '[status]';
+			customizeId = section.id + '[status]';
 			control = new api.controlConstructor.featured_item_status( customizeId, {
 				params: {
 					section: section.id,
