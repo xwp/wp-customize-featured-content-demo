@@ -140,12 +140,12 @@ wp.customize.selectiveRefresh.partialConstructor.featured_item = (function( api,
 			}
 
 			/*
-			 * Prevent selective refresh in response to changing status to trash.
-			 * An item set to have a trash status will be hidden immediately via JS.
+			 * Note that we cannot prevent selective refresh in response to changing
+			 * status to trash because we need the change to trash to cancel out a
+			 * previous pending partial request to change the status to publish.
+			 * This would be a problem specifically when a user rapdily clicks
+			 * the trash/untrash button.
 			 */
-			if ( settingId === partial.id + '[status]' && 'trash' === newValue ) {
-				return false;
-			}
 
 			// Handle special case for Customize Posts since settings are dynamically added.
 			if ( null === oldValue ) {
