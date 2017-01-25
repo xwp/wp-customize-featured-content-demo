@@ -16,8 +16,6 @@ class Model {
 
 	const POST_TYPE = 'featured_item';
 
-	const GET_ITEMS_CACHE_KEY = 'get_featured_content_items';
-
 	/**
 	 * Plugin instance.
 	 *
@@ -580,7 +578,6 @@ class Model {
 			$post_array['ID'] = $post->ID;
 			$r = wp_update_post( wp_slash( $post_array ), true );
 		}
-		wp_cache_delete( static::GET_ITEMS_CACHE_KEY );
 		return $r;
 	}
 
@@ -601,7 +598,6 @@ class Model {
 		if ( ! wp_delete_post( $post->ID, true ) ) {
 			return new \WP_Error( 'delete_failure', __( 'Failed to delete.', 'customize-featured-content-demo' ) );
 		}
-		wp_cache_delete( static::GET_ITEMS_CACHE_KEY );
 		return true;
 	}
 
