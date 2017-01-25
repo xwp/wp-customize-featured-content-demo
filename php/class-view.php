@@ -42,6 +42,20 @@ class View {
 	}
 
 	/**
+	 * Add hooks.
+	 */
+	public function add_hooks() {
+		add_action( 'init', array( $this, 'register_shortcode' ) );
+	}
+
+	/**
+	 * Register shortcode.
+	 */
+	public function register_shortcode() {
+		add_shortcode( 'featured_items', array( $this, 'render_items' ) );
+	}
+
+	/**
 	 * Render items.
 	 */
 	public function render_items() {

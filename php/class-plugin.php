@@ -69,6 +69,7 @@ class Plugin {
 		$this->model->add_hooks();
 
 		$this->view = new View( $this );
+		$this->view->add_hooks();
 
 		$this->customizer = new Customizer( $this );
 		$this->customizer->add_hooks();

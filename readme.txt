@@ -14,9 +14,11 @@ Select items to feature on your site.
 This plugin provides an advanced demonstration of how to build a customizer interface for selecting items to feature on your site.
 Items have a title, URL, featured image, and excerpt which are pulled from an optional related post or they can be selectively overridden as desired.
 
-This plugin depends on first having the <a href="https://wordpress.org/plugins/customize-object-selector/">Customize Object Selector</a> plugin installed and activated.
+This plugin depends on first having the <a href="https://wordpress.org/plugins/customize-object-selector/">Customize Object Selector</a> plugin installed and activated. Without this plugin active, you won't be able to select a related post and will have to enter the title, featured image, and URL for each item.
 
-Example of how to integrate with your theme, say to show the featured items on the homepage:
+A `[featured_items]` shortcode is included, allowing you to render the featured items in any page or post.
+
+You may also render the items as part of your theme with the following example code which renders the items on the front page:
 
 <pre lang="php">
 <?php if ( is_front_page() && function_exists( '\Customize_Featured_Content_Demo\render_items' ) ) : ?>
