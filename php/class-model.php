@@ -151,60 +151,6 @@ class Model {
 					),
 				),
 			),
-			'title_color' => array(
-				'description' => __( 'The text color for the title.', 'customize-featured-content-demo' ),
-				'type' => 'string',
-				'default' => '',
-				'arg_options' => array(
-					'validate_callback' => array( $this, 'validate_color' ),
-					'storage' => array(
-						'object' => 'postmeta',
-					),
-				),
-			),
-			'title_background' => array(
-				'description' => __( 'The background color for the title.', 'customize-featured-content-demo' ),
-				'type' => 'string',
-				'default' => '',
-				'arg_options' => array(
-					'validate_callback' => array( $this, 'validate_color' ),
-					'storage' => array(
-						'object' => 'postmeta',
-					),
-				),
-			),
-			'title_font_size' => array(
-				'description' => __( 'The font size for the title.', 'customize-featured-content-demo' ),
-				'type' => 'integer',
-				'default' => 50,
-				'minimum' => 8,
-				'maximum' => 100,
-				'arg_options' => array(
-					'storage' => array(
-						'object' => 'postmeta',
-					),
-				),
-			),
-			'title_top' => array(
-				'description' => __( 'The top position for the title.', 'customize-featured-content-demo' ),
-				'type' => 'integer',
-				'default' => 0,
-				'arg_options' => array(
-					'storage' => array(
-						'object' => 'postmeta',
-					),
-				),
-			),
-			'title_left' => array(
-				'description' => __( 'The left position for the title.', 'customize-featured-content-demo' ),
-				'type' => 'integer',
-				'default' => 0,
-				'arg_options' => array(
-					'storage' => array(
-						'object' => 'postmeta',
-					),
-				),
-			),
 			'excerpt' => array(
 				'description' => __( 'The excerpt for the object.', 'default' ),
 				'type' => 'string',
@@ -217,60 +163,6 @@ class Model {
 					'sanitize_callback' => array( $this, 'sanitize_excerpt' ),
 					'rendering' => array(
 						'callback' => array( $this->plugin->view, 'get_rendered_excerpt' ),
-					),
-				),
-			),
-			'excerpt_color' => array(
-				'description' => __( 'The text color for the excerpt.', 'customize-featured-content-demo' ),
-				'type' => 'string',
-				'default' => '',
-				'arg_options' => array(
-					'validate_callback' => array( $this, 'validate_color' ),
-					'storage' => array(
-						'object' => 'postmeta',
-					),
-				),
-			),
-			'excerpt_background' => array(
-				'description' => __( 'The background color for the excerpt.', 'customize-featured-content-demo' ),
-				'type' => 'string',
-				'default' => '',
-				'arg_options' => array(
-					'validate_callback' => array( $this, 'validate_color' ),
-					'storage' => array(
-						'object' => 'postmeta',
-					),
-				),
-			),
-			'excerpt_font_size' => array(
-				'description' => __( 'The font size for the excerpt.', 'customize-featured-content-demo' ),
-				'type' => 'integer',
-				'default' => 20,
-				'minimum' => 8,
-				'maximum' => 100,
-					'arg_options' => array(
-					'storage' => array(
-						'object' => 'postmeta',
-					),
-				),
-			),
-			'excerpt_top' => array(
-				'description' => __( 'The top position for the excerpt.', 'customize-featured-content-demo' ),
-				'type' => 'integer',
-				'default' => 0,
-				'arg_options' => array(
-					'storage' => array(
-						'object' => 'postmeta',
-					),
-				),
-			),
-			'excerpt_left' => array(
-				'description' => __( 'The left position for the excerpt.', 'customize-featured-content-demo' ),
-				'type' => 'integer',
-				'default' => 0,
-				'arg_options' => array(
-					'storage' => array(
-						'object' => 'postmeta',
 					),
 				),
 			),
