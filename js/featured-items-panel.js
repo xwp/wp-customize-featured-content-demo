@@ -60,6 +60,20 @@ wp.customize.panelConstructor.featured_items = (function( api, $ ) {
 		},
 
 		/**
+		 * Return whether this panel has any active sections.
+		 *
+		 * @inheritDoc
+		 *
+		 * Since new featured items can be created from from the empty panel,
+		 * it should always be active.
+		 *
+		 * @return {boolean}
+		 */
+		isContextuallyActive: function() {
+			return true;
+		},
+
+		/**
 		 * Finish initialization.
 		 *
 		 * This an example of lazy-loading settings, sections, and controls
