@@ -97,6 +97,7 @@ wp.customize.featuredContent.PropertyInlineEditing = (function( api, $ ) {
 			component.editing.set( true );
 			component.container.prop( 'contentEditable', 'true' );
 			component.container.text( setting.get() || $.trim( component.container.text() ) );
+			component.container.focus();
 
 			// Suspend selective refresh updates to title while inline editing.
 			component.placement.partial.params.settings = _.without(
