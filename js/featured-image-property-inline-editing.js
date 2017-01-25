@@ -66,6 +66,7 @@ wp.customize.featuredContent.PropertyInlineEditing = (function( api, $ ) {
 				value = component.container.text();
 
 				component.getSetting().set( value );
+				component.dirty = true;
 
 				/*
 				 * Send the setting value to the parent window so that it will
@@ -96,6 +97,7 @@ wp.customize.featuredContent.PropertyInlineEditing = (function( api, $ ) {
 			}
 			component.editing.set( true );
 			component.container.prop( 'contentEditable', 'true' );
+			component.previousRendered = component.container.html();
 			component.container.text( setting.get() || $.trim( component.container.text() ) );
 			component.container.focus();
 
@@ -126,10 +128,16 @@ wp.customize.featuredContent.PropertyInlineEditing = (function( api, $ ) {
 			if ( ! component.editing.get() ) {
 				return;
 			}
-			setting = component.getSetting();
 			component.editing.set( false );
+			setting = component.getSetting();
 			component.container.prop( 'contentEditable', 'false' );
-			component.placement.partial.refresh();
+
+			if ( component.dirty ) {
+				component.placement.partial.refresh();
+				component.dirty = false;
+			} else {
+				component.container.html( component.previousRendered );
+			}
 
 			// Restore selective refresh once completed.
 			component.placement.partial.params.settings.push( setting.id );
