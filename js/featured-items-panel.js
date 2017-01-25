@@ -242,6 +242,9 @@ wp.customize.panelConstructor.featured_items = (function( api, $ ) {
 				// This will cause the settings and section to be created.
 				panel.itemsCollection.add( item );
 
+				// Announce the creation of the item to the preview so that a partial can be initially refreshed.
+				api.previewer.send( 'featured-item-created', item.id );
+
 				// Resolve once the section exists.
 				api.section( panel.getSectionId( item.id ), function( section ) {
 					deferred.resolve( {

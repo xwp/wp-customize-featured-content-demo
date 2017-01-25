@@ -28,12 +28,25 @@ wp.customize.featuredContent.preview = (function( api ) {
 	component.ready = function previewReady() {
 		api.each( component.handleSettingAddition );
 		api.bind( 'add', component.handleSettingAddition );
+
+		api.preview.bind( 'featured-item-created', function( id ) {
+		    component.ensurePartial( id ).refresh();
+	    } );
 	};
 
 	/**
 	 * Handle setting addition to create featured item partials as required.
 	 *
-	 * @param {wp.customize.Value} setting
+	 * For already published featured items that already exist this won't be
+	 * necessary since the featured item placement containers have attributes
+	 * that will cause their partials to be created automatically. But for featured
+	 * items that are trashed in the customized state or for featured items
+	 * that get newly created, this ensures that their partials will be
+	 * dynamically created. The featured item status setting is listened for
+	 * specifically since it is the setting used to determine whether the
+	 * partial needs a placement or not (publish vs trash).
+	 *
+	 * @param {wp.customize.Value} setting The setting.
 	 */
 	component.handleSettingAddition = function handleSettingAddition( setting ) {
 		var matches = setting.id.match( /^featured_item\[(\d+)]\[status]$/ );
@@ -43,9 +56,9 @@ wp.customize.featuredContent.preview = (function( api ) {
 	};
 
 	/**
-	 * Ensure featured item partial.
+	 * Ensure featured item partial exists.
 	 *
-	 * This is primarily used for when partials are newly created.
+	 * This is relevant for featured items that get created or which get untrashed.
 	 *
 	 * @param {int} itemId Item ID.
 	 * @returns {wp.customize.selectiveRefresh.Partial} Ensured partial.

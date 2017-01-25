@@ -156,35 +156,31 @@ wp.customize.selectiveRefresh.partialConstructor.featured_item = (function( api,
 		},
 
 		/**
-		 * Find all placements for this partial in the document.
+		 * Request the new partial and render it into the placements.
 		 *
-		 * Inject missing placements if none found (due to having been previously trashed or having been just added).
-		 *
-		 * @inheritDoc
-		 *
-		 * @return {Array.<wp.customize.selectiveRefresh.Placement>}
+		 * @return {jQuery.Promise}
 		 */
-		placements: function placements() {
-			var partial = this, placements, statusSetting;
-			placements = api.selectiveRefresh.Partial.prototype.placements.call( partial );
+		refresh: function refresh() {
+			var partial = this, statusSetting;
 
+			// Ensure the partial has a placement container injected into the DOM handling items that are created and untrashed.
 			statusSetting = api( partial.id + '[status]' );
-			if ( 0 === placements.length && statusSetting && 'trash' !== statusSetting.get() ) {
-				placements = $( '.featured-content-items' ).map( function() {
-					var featuredItemsContainer = $( this ), placementContainer;
-					placementContainer = $( '<li></li>' );
-					placementContainer.addClass( 'featured-content-item' );
-					placementContainer.attr( 'data-customize-partial-id', partial.id );
-					placementContainer.attr( 'data-customize-type', partial.type );
-					featuredItemsContainer.prepend( placementContainer );
-					return new api.selectiveRefresh.Placement( {
-						partial: partial,
-						container: placementContainer
-					} );
-				} ).get();
+			if ( 0 === partial.placements().length && statusSetting && 'trash' !== statusSetting.get() ) {
+				$( '.featured-content-items' ).each( function() {
+
+					// See \Customize_Featured_Content_Demo\View::render_item().
+					$( this ).prepend( $( '<li></li>', {
+						'class': 'featured-content-item',
+						'data-customize-partial-id': partial.id,
+						'data-customize-type': partial.type
+					} ) );
+				} );
+
+				// Make sure the newly-added placement gets put into the right order.
+				partial.repositionPlacements();
 			}
 
-			return placements;
+			return api.selectiveRefresh.Partial.prototype.refresh.call( partial );
 		},
 
 		/**
@@ -193,23 +189,36 @@ wp.customize.selectiveRefresh.partialConstructor.featured_item = (function( api,
 		 * @returns {void}
 		 */
 		repositionPlacements: function repositionPlacements() {
-			var partial = this, positionSetting;
-			positionSetting = api( partial.id + '[position]' );
+			var partial = this;
 			_.each( partial.placements(), function( placement ) {
-				var sortedItemContainers, itemsContainer;
+				var itemsContainer, itemContainers, oldPartialOrdering, newPartialOrdering;
 				itemsContainer = placement.container.parent();
-				placement.container.data( 'position', positionSetting.get() );
 
-				sortedItemContainers = itemsContainer.children().get().sort( function( a, b ) {
-					var positionA, positionB;
-					positionA = parseInt( $( a ).data( 'position' ), 10 );
-					positionB = parseInt( $( b ).data( 'position' ), 10 );
-					return positionA - positionB;
+				itemContainers = itemsContainer.children( '.featured-content-item[data-customize-partial-id]' ).get();
+				oldPartialOrdering = _.map( itemContainers, function( itemContainer ) {
+					return $( itemContainer ).data( 'customize-partial-id' );
 				} );
 
-				_.each( sortedItemContainers, function( itemContainer ) {
-					itemsContainer.append( itemContainer );
+				itemContainers.sort( function( a, b ) {
+					var positionSettingA, positionSettingB;
+					positionSettingA = api( $( a ).data( 'customize-partial-id' ) + '[position]' );
+					positionSettingB = api( $( b ).data( 'customize-partial-id' ) + '[position]' );
+					if ( ! positionSettingA || ! positionSettingB ) {
+						return 0;
+					} else {
+						return positionSettingA.get() - positionSettingB.get();
+					}
 				} );
+
+				newPartialOrdering = _.map( itemContainers, function( itemContainer ) {
+					return $( itemContainer ).data( 'customize-partial-id' );
+				} );
+
+				if ( ! _.isEqual( oldPartialOrdering, newPartialOrdering ) ) {
+					_.each( itemContainers, function( itemContainer ) {
+						itemsContainer.append( itemContainer );
+					} );
+				}
 			} );
 		},
 
