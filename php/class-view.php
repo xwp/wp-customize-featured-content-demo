@@ -91,12 +91,14 @@ class View {
 	 */
 	public function get_rendered_excerpt( $excerpt, $id ) {
 		$post = get_post( $id );
+		$GLOBALS['post'] = $post; // Because get_the_content() requires the global. Sad!
 
 		/** This filter is documented in wp-includes/post-template.php */
 		$excerpt = apply_filters( 'the_excerpt', apply_filters( 'get_the_excerpt', $excerpt, $post ) );
 
 		$excerpt = convert_smilies( $excerpt );
 
+		wp_reset_postdata();
 		return $excerpt;
 	}
 
