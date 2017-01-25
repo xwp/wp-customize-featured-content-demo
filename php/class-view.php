@@ -52,7 +52,12 @@ class View {
 	 * Register shortcode.
 	 */
 	public function register_shortcode() {
-		add_shortcode( 'featured_items', array( $this, 'render_items' ) );
+		$view = $this; // For PHP 5.3.
+		add_shortcode( 'featured_items', function() use ( $view ) {
+			ob_start();
+			$view->render_items();
+			return ob_get_clean();
+		} );
 	}
 
 	/**
