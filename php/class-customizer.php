@@ -52,6 +52,120 @@ class Customizer {
 		add_action( 'customize_controls_enqueue_scripts', array( $this, 'enqueue_pane_dependencies' ) );
 		add_action( 'customize_controls_print_footer_scripts', array( $this, 'print_templates' ) );
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_preview_dependencies' ) );
+
+		// Sync status of featured items with the status of the changeset.
+		add_action( 'transition_post_status', array( $this, 'keep_alive_auto_drafts_at_transition_post_status' ), 20, 3 );
+		add_action( 'delete_post', array( $this, 'delete_changeset_featured_item_auto_draft_posts' ) );
+	}
+
+	/**
+	 * Get featured item posts referenced in a given changeset.
+	 *
+	 * @param string $changeset_uuid Changeset UUID.
+	 * @param string $status         Post status. Defaults top auto-draft.
+	 * @return \WP_Post[] Featured item posts.
+	 */
+	public function get_featured_items_in_changeset( $changeset_uuid, $status = 'auto-draft' ) {
+		require_once ABSPATH . WPINC . '/class-wp-customize-manager.php';
+		$wp_customize = new \WP_Customize_Manager( compact( 'changeset_uuid' ) );
+
+		// Make sure the featured item settings get added.
+		$wp_customize->register_dynamic_settings();
+
+		$post_ids = array();
+		foreach ( $wp_customize->settings() as $setting ) {
+			if ( $setting instanceof Featured_Item_Property_Customize_Setting ) {
+				$post_ids[] = $setting->post_id;
+			}
+		}
+
+		// No featured items are in the changeset so nothing to do.
+		if ( empty( $post_ids ) ) {
+			return array();
+		}
+
+		$query = new \WP_Query( array(
+			'post__in' => $post_ids,
+			'posts_per_page' => -1,
+			'post_type' => Model::POST_TYPE,
+			'post_status' => $status,
+			'no_found_rows' => true,
+			'cache_results' => true,
+			'update_post_meta_cache' => false,
+			'update_post_term_cache' => false,
+			'lazy_load_term_meta' => false,
+		) );
+
+		return $query->posts;
+	}
+
+	/**
+	 * Make sure that auto-draft featured items get their post_date bumped to prevent premature garbage-collection.
+	 *
+	 * When a changeset is updated but remains an auto-draft, ensure the post_date
+	 * for the auto-draft featured items remains the same so that it will be
+	 * garbage-collected at the same time by `wp_delete_auto_drafts()`. Otherwise,
+	 * if the changeset is updated to be a draft then update the featured items
+	 * to have a far-future post_date so that they will never be garbage collected
+	 * unless the changeset post itself is deleted.
+	 *
+	 * @see wp_delete_auto_drafts()
+	 *
+	 * @param string   $new_status Transition to this post status.
+	 * @param string   $old_status Previous post status.
+	 * @param \WP_Post $post Post data.
+	 */
+	public function keep_alive_auto_drafts_at_transition_post_status( $new_status, $old_status, $post ) {
+		unset( $old_status );
+		global $wpdb;
+
+		// Short-circuit if not a changeset or if the changeset was published.
+		if ( 'customize_changeset' !== $post->post_type || 'publish' === $new_status ) {
+			return;
+		}
+
+		if ( 'auto-draft' === $new_status ) {
+			/*
+			 * Keep the post date for the featured item matching the changeset
+			 * so that it will not be garbage-collected before the changeset.
+			 */
+			$new_post_date = $post->post_date;
+		} else {
+			/*
+			 * Since the changeset no longer has an auto-draft (and it is not published)
+			 * it is now a persistent changeset, a long-lived draft, and so any
+			 * associated auto-draft featured items should have their dates
+			 * pushed out very far into the future to prevent them from ever
+			 * being garbage-collected.
+			 */
+			$new_post_date = gmdate( 'Y-m-d H:i:d', strtotime( '+100 years' ) );
+		}
+
+		foreach ( $this->get_featured_items_in_changeset( $post->post_name, 'auto-draft' ) as $post ) {
+			$wpdb->update(
+				$wpdb->posts,
+				array( 'post_date' => $new_post_date ), // Note wp_delete_auto_drafts() only looks at this this date.
+				array( 'ID' => $post->ID )
+			);
+			clean_post_cache( $post->ID );
+		}
+	}
+
+	/**
+	 * Delete auto-draft featured_item posts associated with the supplied changeset.
+	 *
+	 * @param int $post_id Post ID for the customize_changeset.
+	 */
+	function delete_changeset_featured_item_auto_draft_posts( $post_id ) {
+		$post = get_post( $post_id );
+		if ( ! $post || 'customize_changeset' !== $post->post_type ) {
+			return;
+		}
+		$deleted_posts = array();
+		foreach ( $this->get_featured_items_in_changeset( $post->post_name, 'auto-draft' ) as $post ) {
+			$deleted_posts[] = $post;
+			wp_delete_post( $post->ID, true );
+		}
 	}
 
 	/**
