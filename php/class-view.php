@@ -110,7 +110,10 @@ class View {
 	 */
 	public function get_rendered_excerpt( $excerpt, $id ) {
 		$post = get_post( $id );
-		$GLOBALS['post'] = $post; // Because get_the_content() requires the global. Sad!
+
+		// Make post global because get_the_content() requires the global. Sad!
+		$GLOBALS['post'] = $post;
+		setup_postdata( $GLOBALS['post'] );
 
 		/** This filter is documented in wp-includes/post-template.php */
 		$excerpt = apply_filters( 'the_excerpt', apply_filters( 'get_the_excerpt', $excerpt, $post ) );
