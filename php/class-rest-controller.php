@@ -188,7 +188,7 @@ class REST_Controller extends \WP_REST_Posts_Controller {
 					},
 				),
 			);
-		}
+		} // End if().
 		return $rest_field_schema;
 	}
 

@@ -134,27 +134,18 @@ class Featured_Item_Property_Customize_Setting extends \WP_Customize_Setting {
 			return false;
 		}
 		$this->is_previewed = true;
-		add_filter( 'customize_featured_content_demo_item', array( $this, 'filter_previewed_item' ), 10, 2 );
+		add_filter( "customize_featured_content_demo_item[{$this->post_id}][{$this->property}]", array( $this, 'filter_previewed_item_property' ) );
 		return true;
 	}
 
 	/**
-	 * Filter the item when previewed.
+	 * Filter the item property when previewed.
 	 *
-	 * @todo The filtering could be more efficient.
-	 *
-	 * @param array $item Item properties.
-	 * @param int   $id   Item ID.
-	 * @return array|false Array of properties or false if being deleted.
+	 * @param mixed $value Item property value.
+	 * @return mixed Property value.
 	 */
-	public function filter_previewed_item( $item, $id ) {
-		if ( $this->post_id === $id ) {
-			$property_value = $this->post_value();
-			if ( null !== $property_value ) {
-				$item[ $this->property ] = $property_value;
-			}
-		}
-		return $item;
+	public function filter_previewed_item_property( $value ) {
+		return $this->post_value( $value ); // Note that the return value for this call is validated and sanitized.
 	}
 
 	/**
@@ -177,7 +168,7 @@ class Featured_Item_Property_Customize_Setting extends \WP_Customize_Setting {
 	 * Sanitize an item's property value.
 	 *
 	 * @param mixed $value The item property to sanitize.
-	 * @return array|false|\WP_Error Sanitized value, or `null`/`WP_Error` if invalid.
+	 * @return array|\WP_Error Sanitized value, or `null`/`WP_Error` if invalid.
 	 */
 	public function sanitize( $value ) {
 		$value = $this->plugin->model->sanitize_item_property( $this->property, $value );

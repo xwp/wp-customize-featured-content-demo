@@ -362,6 +362,17 @@ class Model {
 		 * @param int   $id   Item ID.
 		 */
 		$item = apply_filters( 'customize_featured_content_demo_item', $item, $post->ID );
+
+		foreach ( $item as $property_name => &$property_value ) {
+
+			/**
+			 * Filters the property value for a featured item.
+			 *
+			 * @param mixed $property_value Property value.
+			 */
+			$property_value = apply_filters( "customize_featured_content_demo_item[{$post->ID}][{$property_name}]", $property_value, $post->ID );
+		}
+
 		return $item;
 	}
 

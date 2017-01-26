@@ -7,6 +7,11 @@
 			<property name="text_domain" value="customize-featured-content-demo,default" />
 		</properties>
 	</rule>
+	<rule ref="WordPress.NamingConventions.ValidHookName">
+		<properties>
+			<property name="additionalWordDelimiters" value="[]"/>
+		</properties>
+	</rule>
 	<rule ref="WordPress-Docs" />
 
 	<rule ref="Squiz.Commenting.FunctionComment.ScalarTypeHintMissing">
