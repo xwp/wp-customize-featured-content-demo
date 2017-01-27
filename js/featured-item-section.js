@@ -119,6 +119,11 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 				section.expanded.bind( onceExpanded );
 			}
 
+			// Ensure that controls are embedded when one of them is autofocused.
+			if ( api.settings.autofocus.control && 0 === api.settings.autofocus.control.indexOf( section.id ) ) {
+				controlsNeeded.resolve();
+			}
+
 			// Provide an assist for focus-control-for-setting for lazy-loaded controls.
 			api.previewer.bind( 'focus-control-for-setting', function focusControlForSetting( settingId ) {
 
