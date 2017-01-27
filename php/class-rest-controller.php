@@ -162,14 +162,14 @@ class REST_Controller extends \WP_REST_Posts_Controller {
 					'raw' => array_merge(
 						$rest_field_schema,
 						array(
-							'context' => array( 'view', 'edit', 'embed' ),
+							'context' => array( 'edit' ),
 						)
 					),
 					'rendered' => array_merge(
 						$rest_field_schema,
 						array(
 							'readonly' => true,
-							'context' => array( 'edit' ),
+							'context' => array( 'view', 'edit', 'embed' ),
 						)
 					),
 				),

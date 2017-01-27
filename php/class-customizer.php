@@ -161,9 +161,7 @@ class Customizer {
 		if ( ! $post || 'customize_changeset' !== $post->post_type ) {
 			return;
 		}
-		$deleted_posts = array();
 		foreach ( $this->get_featured_items_in_changeset( $post->post_name, 'auto-draft' ) as $post ) {
-			$deleted_posts[] = $post;
 			wp_delete_post( $post->ID, true );
 		}
 	}
