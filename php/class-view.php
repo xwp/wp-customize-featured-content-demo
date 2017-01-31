@@ -176,16 +176,14 @@ class View {
 			data-customize-partial-id="<?php echo esc_attr( "featured_item[$id]" ); ?>"
 			data-customize-partial-type="featured_item"
 		>
-			<?php if ( $rendered_item['url'] ) : ?>
-				<a class="title" href="<?php echo esc_url( $rendered_item['url'] ); ?>">
-			<?php else : ?>
-				<a class="title">
-			<?php endif; ?>
-				<?php echo $rendered_item['title']; // WPCS: XSS OK. ?>
+			<a <?php if ( $rendered_item['url'] ) { printf( ' href="%s"', esc_url( $rendered_item['url'] ) ); } ?>>
+				<span class="title">
+					<?php echo $rendered_item['title']; // WPCS: XSS OK. ?>
+				</span>
+				<?php if ( $rendered_item['featured_media'] ) : ?>
+					<?php echo wp_get_attachment_image( $rendered_item['featured_media'], 'thumbnail' ); ?>
+				<?php endif; ?>
 			</a>
-			<?php if ( $rendered_item['featured_media'] ) : ?>
-				<?php echo wp_get_attachment_image( $rendered_item['featured_media'], 'thumbnail' ); ?>
-			<?php endif; ?>
 			<?php if ( $rendered_item['excerpt'] ) : ?>
 				<div class="excerpt">
 					<?php echo $rendered_item['excerpt']; // WPCS: XSS OK. ?>
