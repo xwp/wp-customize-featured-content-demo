@@ -146,7 +146,10 @@ class View {
 
 		$title_style = '';
 		if ( $rendered_item['title_color'] ) {
-			$title_style .= sprintf( 'color: %s', $rendered_item['title_color'] );
+			$title_style .= sprintf( 'color: %s;', $rendered_item['title_color'] );
+		}
+		if ( $rendered_item['title_background'] ) {
+			$title_style .= sprintf( 'background-color: %s;', $rendered_item['title_background'] );
 		}
 
 		?>

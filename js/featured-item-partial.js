@@ -83,6 +83,13 @@ wp.customize.selectiveRefresh.partialConstructor.featured_item = (function( api,
 					} );
 				} );
 			} );
+			api( partial.id + '[title_background]', function( titleBackgroundSetting ) {
+				titleBackgroundSetting.bind( function( newTitleColor ) {
+					_.each( partial.placements(), function( placement ) {
+						placement.container.find( '.title' ).css( { backgroundColor: newTitleColor } );
+					} );
+				} );
+			} );
 
 			/*
 			 * Use pure JS to update partial instead of selective refresh server request.
@@ -151,7 +158,7 @@ wp.customize.selectiveRefresh.partialConstructor.featured_item = (function( api,
 			}
 
 			// Prevent selective refresh in response to color changes since we handle them in separately and purely in DOM.
-			if ( settingId === partial.id + '[title_color]' ) {
+			if ( settingId === partial.id + '[title_color]' || settingId === partial.id + '[title_background]' ) {
 				return false;
 			}
 

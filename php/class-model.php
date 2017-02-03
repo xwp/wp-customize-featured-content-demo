@@ -163,6 +163,18 @@ class Model {
 					'sanitize_callback' => array( $this, 'sanitize_color' ),
 				),
 			),
+			'title_background' => array(
+				'description' => __( 'The background color for the title.', 'customize-featured-content-demo' ),
+				'type' => 'string',
+				'default' => '',
+				'arg_options' => array(
+					'storage' => array(
+						'object' => 'postmeta',
+						'key' => 'title_background',
+					),
+					'sanitize_callback' => array( $this, 'sanitize_color' ),
+				),
+			),
 		);
 	}
 

@@ -156,6 +156,7 @@ class Plugin {
 				'related_placeholder' => __( 'Search items', 'customize-featured-content-demo' ),
 				'title_label' => __( 'Title', 'customize-featured-content-demo' ),
 				'title_color_label' => __( 'Title Color', 'customize-featured-content-demo' ),
+				'title_background_label' => __( 'Title Background Color', 'customize-featured-content-demo' ),
 				'position_label' => __( 'Position', 'customize-featured-content-demo' ),
 				'status_label' => __( 'Status', 'customize-featured-content-demo' ),
 				'customize_action' => __( 'Customizing featured item:', 'customize-featured-content-demo' ),
