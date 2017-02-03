@@ -144,6 +144,11 @@ class View {
 			}
 		}
 
+		$title_style = '';
+		if ( $rendered_item['title_color'] ) {
+			$title_style .= sprintf( 'color: %s', $rendered_item['title_color'] );
+		}
+
 		?>
 		<li
 			class="featured-content-item"
@@ -151,7 +156,7 @@ class View {
 			data-customize-partial-type="featured_item"
 		>
 			<a <?php if ( $rendered_item['url'] ) { printf( ' href="%s"', esc_url( $rendered_item['url'] ) ); } ?>>
-				<span class="title">
+				<span class="title" <?php if ( $title_style ) { printf( ' style="%s"', esc_attr( $title_style ) ); } ?>>
 					<?php echo $rendered_item['title']; // WPCS: XSS OK. ?>
 				</span>
 				<?php if ( $rendered_item['featured_media'] ) : ?>

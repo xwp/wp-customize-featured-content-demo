@@ -32,6 +32,7 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 			url_placeholder: '{missing_text:url_placeholder}',
 			related_placeholder: '{missing_text:related_placeholder}',
 			title_label: '{missing_text:title}',
+			title_color_label: '{missing_text:title_color}',
 			position_label: '{missing_text:position}',
 			status_label: '{missing_text:status}',
 			customize_action: '{missing_text:customize_action}'
@@ -45,6 +46,7 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 				'related',
 				'featured_media',
 				'title',
+				'title_color',
 				'url'
 			];
 			_.each( order, function( property, priority ) {
@@ -173,6 +175,7 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 			section.addFeaturedImageControl();
 			section.addRelatedPostControl();
 			section.addTitleControl();
+			section.addTitleColorControl();
 			section.addURLControl();
 			section.addStatusControl();
 		},
@@ -468,6 +471,32 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 			};
 			section.params.item.on( 'change:related', updateRelatedState );
 			updateRelatedState();
+
+			return control;
+		},
+
+		/**
+		 * Add title color control.
+		 *
+		 * @returns {wp.customize.ColorControl} Added control.
+		 */
+		addTitleColorControl: function addTitleColorControl() {
+			var section = this, control, customizeId;
+			customizeId = section.id + '[title_color]'; // Both the the ID for the control and the setting.
+			control = new api.ColorControl( customizeId, {
+				params: {
+					section: section.id,
+					priority: section.controlPriorities.title_color,
+					label: section.l10n.title_color_label,
+					active: true,
+					type: 'color', // Needed for template. Shouldn't be needed in the future.
+					settings: {
+						'default': customizeId
+					},
+					content: '<li class="customize-control customize-control-color"></li>' // This should not be needed in the future.
+				}
+			} );
+			api.control.add( control.id, control );
 
 			return control;
 		},

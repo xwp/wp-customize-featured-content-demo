@@ -155,6 +155,7 @@ class Plugin {
 				'related_plugin_dependency' => __( 'The <a href="https://wordpress.org/plugins/customize-object-selector/" target="_blank">Customize Object Selector</a> plugin must be installed and activated to select a related post.', 'customize-featured-content-demo' ),
 				'related_placeholder' => __( 'Search items', 'customize-featured-content-demo' ),
 				'title_label' => __( 'Title', 'customize-featured-content-demo' ),
+				'title_color_label' => __( 'Title Color', 'customize-featured-content-demo' ),
 				'position_label' => __( 'Position', 'customize-featured-content-demo' ),
 				'status_label' => __( 'Status', 'customize-featured-content-demo' ),
 				'customize_action' => __( 'Customizing featured item:', 'customize-featured-content-demo' ),

@@ -74,6 +74,17 @@ wp.customize.selectiveRefresh.partialConstructor.featured_item = (function( api,
 			} );
 
 			/*
+			 * Use JS for instant preview of changes to the title color.
+			 */
+			api( partial.id + '[title_color]', function( titleColorSetting ) {
+				titleColorSetting.bind( function( newTitleColor ) {
+					_.each( partial.placements(), function( placement ) {
+						placement.container.find( '.title' ).css( { color: newTitleColor } );
+					} );
+				} );
+			} );
+
+			/*
 			 * Use pure JS to update partial instead of selective refresh server request.
 			 * Since a partial is constrained to the item itself an update the the
 			 * position setting wouldn't have any effect on the placement in the page.
@@ -136,6 +147,11 @@ wp.customize.selectiveRefresh.partialConstructor.featured_item = (function( api,
 
 			// Prevent selective refresh in response to position changes since we handle them in separately and purely in DOM.
 			if ( settingId === partial.id + '[position]' ) {
+				return false;
+			}
+
+			// Prevent selective refresh in response to color changes since we handle them in separately and purely in DOM.
+			if ( settingId === partial.id + '[title_color]' ) {
 				return false;
 			}
 
