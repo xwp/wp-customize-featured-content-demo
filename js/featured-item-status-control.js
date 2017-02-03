@@ -16,7 +16,7 @@ wp.customize.controlConstructor.featured_item_status = (function( api, $ ) {
 		/**
 		 * Constructor.
 		 *
-		 * @param {string} id - Partial ID.
+		 * @param {string} id - Control ID.
 		 * @param {Object} options - Options.
 		 */
 		initialize: function( id, options ) {

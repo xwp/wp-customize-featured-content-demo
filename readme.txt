@@ -25,8 +25,3 @@ You may also render the items as part of your theme with the following example c
 	<?php \Customize_Featured_Content_Demo\render_items(); ?>
 <?php endif; ?>
 </pre>
-
-== Changelog ==
-
-= 0.1.0-alpha =
-Work in progress
