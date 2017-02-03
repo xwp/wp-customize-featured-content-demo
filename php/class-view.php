@@ -151,6 +151,12 @@ class View {
 		if ( $rendered_item['title_background'] ) {
 			$title_style .= sprintf( 'background-color: %s;', $rendered_item['title_background'] );
 		}
+		if ( $rendered_item['title_left'] ) {
+			$title_style .= sprintf( 'left: %dpx;', $rendered_item['title_left'] );
+		}
+		if ( $rendered_item['title_top'] ) {
+			$title_style .= sprintf( 'top: %dpx;', $rendered_item['title_top'] );
+		}
 
 		?>
 		<li

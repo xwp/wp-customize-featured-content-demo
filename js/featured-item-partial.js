@@ -74,7 +74,7 @@ wp.customize.selectiveRefresh.partialConstructor.featured_item = (function( api,
 			} );
 
 			/*
-			 * Use JS for instant preview of changes to the title color.
+			 * Use JS for instant preview of changes to the title color and positioning.
 			 */
 			api( partial.id + '[title_color]', function( titleColorSetting ) {
 				titleColorSetting.bind( function( newTitleColor ) {
@@ -87,6 +87,20 @@ wp.customize.selectiveRefresh.partialConstructor.featured_item = (function( api,
 				titleBackgroundSetting.bind( function( newTitleColor ) {
 					_.each( partial.placements(), function( placement ) {
 						placement.container.find( '.title' ).css( { backgroundColor: newTitleColor } );
+					} );
+				} );
+			} );
+			api( partial.id + '[title_left]', function( titleLeftSetting ) {
+				titleLeftSetting.bind( function( newTitleLeft ) {
+					_.each( partial.placements(), function( placement ) {
+						placement.container.find( '.title' ).css( { left: newTitleLeft } );
+					} );
+				} );
+			} );
+			api( partial.id + '[title_top]', function( titleTopSetting ) {
+				titleTopSetting.bind( function( newTitleTop ) {
+					_.each( partial.placements(), function( placement ) {
+						placement.container.find( '.title' ).css( { top: newTitleTop } );
 					} );
 				} );
 			} );
@@ -157,8 +171,8 @@ wp.customize.selectiveRefresh.partialConstructor.featured_item = (function( api,
 				return false;
 			}
 
-			// Prevent selective refresh in response to color changes since we handle them in separately and purely in DOM.
-			if ( settingId === partial.id + '[title_color]' || settingId === partial.id + '[title_background]' ) {
+			// Prevent selective refresh in response to color or position changes since we handle them in separately and purely in DOM.
+			if ( settingId === partial.id + '[title_color]' || settingId === partial.id + '[title_background]' || settingId === partial.id + '[title_top]' || settingId === partial.id + '[title_left]' ) {
 				return false;
 			}
 

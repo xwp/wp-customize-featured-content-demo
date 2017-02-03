@@ -34,6 +34,7 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 			title_label: '{missing_text:title}',
 			title_color_label: '{missing_text:title_color}',
 			title_background_label: '{missing_text:title_background}',
+			title_positioning: '{missing_text:title_positioning}',
 			position_label: '{missing_text:position}',
 			status_label: '{missing_text:status}',
 			customize_action: '{missing_text:customize_action}'
@@ -49,6 +50,7 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 				'title',
 				'title_color',
 				'title_background',
+				'title_positioning',
 				'url'
 			];
 			_.each( order, function( property, priority ) {
@@ -179,6 +181,7 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 			section.addTitleControl();
 			section.addTitleColorControl();
 			section.addTitleBackgroundControl();
+			section.addTitlePositioningControl();
 			section.addURLControl();
 			section.addStatusControl();
 		},
@@ -523,6 +526,31 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 						'default': customizeId
 					},
 					content: '<li class="customize-control customize-control-color"></li>' // This should not be needed in the future.
+				}
+			} );
+			api.control.add( control.id, control );
+
+			return control;
+		},
+
+		/**
+		 * Add title positioning control.
+		 *
+		 * @returns {wp.customize.ColorControl} Added control.
+		 */
+		addTitlePositioningControl: function addTitlePositioningControl() {
+			var section = this, control;
+			control = new api.controlConstructor.featured_item_element_positioning( section.id + '[title_positioning]', {
+				params: {
+					section: section.id,
+					priority: section.controlPriorities.title_positioning,
+					label: section.l10n.title_positioning_label,
+					active: true,
+					settings: {
+						'default': section.id + '[title_top]',
+						top: section.id + '[title_top]',
+						left: section.id + '[title_left]'
+					}
 				}
 			} );
 			api.control.add( control.id, control );

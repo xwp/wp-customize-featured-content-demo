@@ -175,6 +175,30 @@ class Model {
 					'sanitize_callback' => array( $this, 'sanitize_color' ),
 				),
 			),
+			'title_top' => array(
+				'description' => __( 'The top position for the title.', 'customize-featured-content-demo' ),
+				'type' => 'integer',
+				'minimum' => 0,
+				'default' => 10,
+				'arg_options' => array(
+					'storage' => array(
+						'object' => 'postmeta',
+						'key' => 'title_top',
+					),
+				),
+			),
+			'title_left' => array(
+				'description' => __( 'The left position for the title.', 'customize-featured-content-demo' ),
+				'type' => 'integer',
+				'minimum' => 0,
+				'default' => 10,
+				'arg_options' => array(
+					'storage' => array(
+						'object' => 'postmeta',
+						'key' => 'title_left',
+					),
+				),
+			),
 		);
 	}
 

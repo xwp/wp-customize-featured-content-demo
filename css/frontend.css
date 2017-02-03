@@ -9,14 +9,21 @@
 	width: 150px;
 	display: inline-block;
 }
+.featured-content-item > a {
+	position: relative;
+	overflow: hidden;
+}
 .featured-content-item .title {
 	font-weight: bold;
-	display: block;
+	display: inline;
 	margin-bottom: 0.5em;
-	display: block;
 	min-height: 1em;
+	position: absolute;
+	padding: 5px;
+	z-index: 2;
 }
 .featured-content-item img {
 	display: block;
 	margin-bottom: 0.5em;
+	z-index: 1;
 }
