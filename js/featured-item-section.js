@@ -539,7 +539,9 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 		 * @returns {wp.customize.ColorControl} Added control.
 		 */
 		addTitlePositioningControl: function addTitlePositioningControl() {
-			var section = this, control;
+			var section = this, control, titleLeftSettingId, titleTopSettingId;
+			titleLeftSettingId = section.id + '[title_left]';
+			titleTopSettingId = section.id + '[title_top]';
 			control = new api.controlConstructor.featured_item_element_positioning( section.id + '[title_positioning]', {
 				params: {
 					section: section.id,
@@ -547,9 +549,9 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 					label: section.l10n.title_positioning_label,
 					active: true,
 					settings: {
-						'default': section.id + '[title_top]',
-						top: section.id + '[title_top]',
-						left: section.id + '[title_left]'
+						'default': titleTopSettingId,
+						top: titleTopSettingId,
+						left: titleLeftSettingId
 					}
 				}
 			} );

@@ -18,6 +18,7 @@ wp.customize.controlConstructor.featured_item_element_positioning = (function( a
 		 *
 		 * @param {string} id - Control ID.
 		 * @param {Object} options - Options.
+		 * @returns {void}
 		 */
 		initialize: function( id, options ) {
 			var control = this, args;

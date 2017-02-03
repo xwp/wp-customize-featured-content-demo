@@ -218,6 +218,7 @@ class Plugin {
 			'wp-api',
 			'customize-featured-items-wp-api-extensions',
 			'customize-selective-refresh',
+			'jquery-ui-draggable',
 			'customize-featured-item-property-inline-editing',
 		);
 		$wp_scripts->add( $handle, $src, $deps, $this->version );

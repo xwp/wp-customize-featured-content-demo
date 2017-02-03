@@ -39,7 +39,7 @@ wp.customize.settingConstructor.featured_item_property = (function( api ) {
 		 * @param {*} originalValue Value.
 		 * @returns {*} Sanitized value or null if invalid.
 		 */
-		validate: function validate( originalValue ) {
+		validate: function validate( originalValue ) { // eslint-disable-line complexity
 			var setting = this, value;
 
 			value = api.Setting.prototype.validate.call( setting, originalValue );

@@ -161,7 +161,7 @@ wp.customize.selectiveRefresh.partialConstructor.featured_item = (function( api,
 		 * @param {object} oldValue Old value.
 		 * @return {boolean} Whether the setting is related to the partial.
 		 */
-		isRelatedSetting: function isRelatedSetting( setting, newValue, oldValue ) {
+		isRelatedSetting: function isRelatedSetting( setting, newValue, oldValue ) { // eslint-disable-line complexity
 			var partial = this, settingId;
 
 			settingId = _.isString( setting ) ? setting : setting.id;
@@ -288,6 +288,20 @@ wp.customize.selectiveRefresh.partialConstructor.featured_item = (function( api,
 					event.preventDefault();
 					event.stopPropagation(); // Prevent partial's default showControl behavior.
 					api.preview.send( 'focus-control-for-setting', partial.id + '[featured_media]' );
+				}
+			} );
+
+			placement.container.find( '.title' ).draggable( {
+				containment: placement.container.find( 'img' ),
+				scroll: false,
+				start: function() {
+					$( this ).addClass( 'dragging' );
+				},
+				stop: function( event, ui ) {
+					$( this ).removeClass( 'dragging' );
+
+					api.preview.send( 'setting', [ partial.id + '[title_left]', ui.position.left ] );
+					api.preview.send( 'setting', [ partial.id + '[title_top]', ui.position.top ] );
 				}
 			} );
 		}

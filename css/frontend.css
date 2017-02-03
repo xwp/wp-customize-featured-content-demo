@@ -8,20 +8,24 @@
 	margin-right: 1em;
 	width: 150px;
 	display: inline-block;
+	position: relative;
 }
 .featured-content-item > a {
-	position: relative;
 	overflow: hidden;
+	display: block;
 }
 .featured-content-item .title {
 	font-weight: bold;
 	display: inline;
-	margin-bottom: 0.5em;
 	min-height: 1em;
 	position: absolute;
 	padding: 5px;
 	z-index: 2;
 }
+.featured-content-item .title.dragging {
+	cursor: move;
+}
+
 .featured-content-item img {
 	display: block;
 	margin-bottom: 0.5em;
