@@ -93,6 +93,7 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 			section.syncTitleWithUI();
 			section.syncPositionAsPriority();
 			section.syncStatusWithUI();
+			section.acceptSettingChangesFromPreview();
 
 			controlsNeeded = $.Deferred();
 			controlsNeeded.done( function() {
@@ -253,6 +254,43 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 				};
 				statusSetting.bind( setStatus );
 				setStatus();
+			} );
+		},
+
+		/**
+		 * Accept setting changes from the preview from inline edits.
+		 *
+		 * Listen for changes to this setting sent from the preview.
+		 * Normally settings are only synced from the controls into the preview
+		 * and not the other way around. For inline editing, however, setting
+		 * changes can be made in the preview and they then need to be synced
+		 * back up to the controls pane. This is an implementation of #29288:
+		 * Settings updated within the Customizer Preview are not synced up to
+		 * main app Panel (#29288).
+		 *
+		 * See corresponding code which sends the setting from the preview in:
+		 * `wp.customize.featuredContent.PropertyInlineEditing`
+		 *
+		 * @link https://core.trac.wordpress.org/ticket/29288
+		 * @returns {void}
+		 */
+		acceptSettingChangesFromPreview: function acceptSettingChangesFromPreview() {
+			var section = this;
+
+			// Listen for
+			api.previewer.bind( 'setting', function bindSettingMessages( args ) {
+				var settingId = args[0], value = args[1];
+
+				/*
+				 * Remember the featured item's property settings have the section ID
+				 * as its base. So if this section's ID is featured_item[123] then the
+				 * setting ID for the title would be featured_item[123][title]. This
+				 * allows us to easily check if the setting being sent from the preview
+				 * belongs to the featured item represented by this section.
+				 */
+				if ( 0 === settingId.indexOf( section.id ) && api.has( settingId ) ) {
+					api( settingId ).set( value );
+				}
 			} );
 		},
 
@@ -423,24 +461,6 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 			};
 			section.params.item.on( 'change:related', updateRelatedState );
 			updateRelatedState();
-
-			/*
-			 * Listen for changes to this setting sent from the preview.
-			 * Normally settings are only synced from the controls into the preview
-			 * and not the other way around. For inline editing, however, setting
-			 * changes can be made in the preview and they then need to be synced
-			 * back up to the controls pane. This is an implementation of #29288:
-			 * Settings updated within the Customizer Preview are not synced up to main app Panel
-			 * https://core.trac.wordpress.org/ticket/29288
-			 *
-			 * See corresponding code which sends the setting from the preview in:
-			 * wp.customize.featuredContent.PropertyInlineEditing
-			 */
-			api.previewer.bind( 'setting', function syncTitleSettingFromPreview( args ) {
-				if ( _.isArray( args ) && args[0] === customizeId && api.has( customizeId ) ) {
-					api( customizeId ).set( args[1] );
-				}
-			} );
 
 			return control;
 		},
