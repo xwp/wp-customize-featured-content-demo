@@ -209,6 +209,7 @@ class Plugin {
 			'customize-featured-items-wp-api-extensions',
 			'customize-selective-refresh',
 			'customize-featured-item-property-inline-editing',
+			'jquery-ui-sortable',
 		);
 		$wp_scripts->add( $handle, $src, $deps, $this->version );
 
