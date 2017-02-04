@@ -301,7 +301,9 @@ class Model {
 		foreach ( $this->get_item_schema_properties() as $field_id => $field_schema ) {
 			if ( isset( $field_schema['arg_options']['storage']['object'] ) ) {
 				$storage = array_merge(
-					array( 'key' => $field_id ),
+					array(
+						'key' => $field_id,
+					),
 					$field_schema['arg_options']['storage']
 				);
 				if ( 'post' === $storage['object'] ) {
@@ -428,7 +430,9 @@ class Model {
 
 			if ( isset( $field_schema['arg_options']['storage']['object'] ) ) {
 				$storage = array_merge(
-					array( 'key' => $field_id ),
+					array(
+						'key' => $field_id,
+					),
 					$field_schema['arg_options']['storage']
 				);
 				if ( 'post' === $storage['object'] ) {

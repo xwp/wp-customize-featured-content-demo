@@ -144,8 +144,12 @@ class Customizer {
 		foreach ( $this->get_featured_items_in_changeset( $post->post_name, 'auto-draft' ) as $post ) {
 			$wpdb->update(
 				$wpdb->posts,
-				array( 'post_date' => $new_post_date ), // Note wp_delete_auto_drafts() only looks at this this date.
-				array( 'ID' => $post->ID )
+				array(
+					'post_date' => $new_post_date, // Note wp_delete_auto_drafts() only looks at this this date.
+				),
+				array(
+					'ID' => $post->ID,
+				)
 			);
 			clean_post_cache( $post->ID );
 		}

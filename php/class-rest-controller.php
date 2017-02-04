@@ -66,7 +66,9 @@ class REST_Controller extends \WP_REST_Posts_Controller {
 		) );
 
 		$get_item_args = array(
-			'context'  => $this->get_context_param( array( 'default' => 'view' ) ),
+			'context'  => $this->get_context_param( array(
+				'default' => 'view',
+			) ),
 		);
 		register_rest_route( $this->namespace, '/' . $this->rest_base . '/(?P<id>[\d]+)', array(
 			array(
@@ -264,7 +266,9 @@ class REST_Controller extends \WP_REST_Posts_Controller {
 			return $validity;
 		}
 		if ( count( $request['with_trashed'] ) && ! current_user_can( $this->plugin->model->object->cap->delete_posts ) ) {
-			return new \WP_Error( 'forbidden_with_trashed_param', __( 'You are not allowed to access trashed items.', 'customize-featured-content-demo' ), array( 'status' => rest_authorization_required_code() ) );
+			return new \WP_Error( 'forbidden_with_trashed_param', __( 'You are not allowed to access trashed items.', 'customize-featured-content-demo' ), array(
+				'status' => rest_authorization_required_code(),
+			) );
 		}
 		return true;
 	}
@@ -352,7 +356,9 @@ class REST_Controller extends \WP_REST_Posts_Controller {
 	public function create_item( $request ) {
 
 		if ( ! empty( $request['id'] ) ) {
-			return new \WP_Error( 'rest_post_exists', __( 'Cannot create existing post.', 'default' ), array( 'status' => 400 ) );
+			return new \WP_Error( 'rest_post_exists', __( 'Cannot create existing post.', 'default' ), array(
+				'status' => 400,
+			) );
 		}
 		$item = $this->prepare_item_for_database( $request );
 		$r = $this->plugin->model->insert_item( $item );
@@ -383,12 +389,16 @@ class REST_Controller extends \WP_REST_Posts_Controller {
 		$item = $this->plugin->model->get_item( $id );
 
 		if ( empty( $item ) ) {
-			return new \WP_Error( 'rest_post_invalid_id', __( 'Invalid post ID.', 'default' ), array( 'status' => 404 ) );
+			return new \WP_Error( 'rest_post_invalid_id', __( 'Invalid post ID.', 'default' ), array(
+				'status' => 404,
+			) );
 		}
 
 		$updated_item = $this->prepare_item_for_database( $request );
 		if ( isset( $updated_item['status'] ) && 'auto-draft' === $updated_item['status'] && $updated_item['status'] !== $item['status'] ) {
-			return new \WP_Error( 'invalid_status', __( 'Unpermitted to set status to auto-draft once transitioned to another status.', 'customize-featured-content-demo' ), array( 'status' => 400 ) );
+			return new \WP_Error( 'invalid_status', __( 'Unpermitted to set status to auto-draft once transitioned to another status.', 'customize-featured-content-demo' ), array(
+				'status' => 400,
+			) );
 		}
 
 		$r = $this->plugin->model->update_item( $id, $updated_item );
