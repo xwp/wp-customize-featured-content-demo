@@ -151,21 +151,6 @@ class Model {
 					),
 				),
 			),
-			'excerpt' => array(
-				'description' => __( 'The excerpt for the object.', 'default' ),
-				'type' => 'string',
-				'default' => '',
-				'arg_options' => array(
-					'storage' => array(
-						'object' => 'post',
-						'key' => 'post_excerpt',
-					),
-					'sanitize_callback' => array( $this, 'sanitize_excerpt' ),
-					'rendering' => array(
-						'callback' => array( $this->plugin->view, 'get_rendered_excerpt' ),
-					),
-				),
-			),
 		);
 	}
 
@@ -184,25 +169,6 @@ class Model {
 		}
 
 		$value = sanitize_text_field( $value );
-		return $value;
-	}
-
-	/**
-	 * Validate and sanitize excerpt.
-	 *
-	 * @param string $value  The excerpt text value.
-	 * @param array  $args   Schema array to use for validation.
-	 * @return string|\WP_Error
-	 */
-	public function sanitize_excerpt( $value, $args ) {
-		$value = rest_sanitize_value_from_schema( $value, $args );
-
-		if ( wp_kses_post( $value ) !== $value ) {
-			return new \WP_Error( 'illegal_markup', __( 'Illegal or malformed markup detected.', 'customize-featured-content-demo' ) );
-		}
-
-		$value = force_balance_tags( $value );
-
 		return $value;
 	}
 
@@ -295,7 +261,7 @@ class Model {
 			'query_var' => false,
 			'delete_with_user' => false,
 			'can_export' => true,
-			'supports' => array( 'title', 'excerpt', 'thumbnail' ),
+			'supports' => array( 'title', 'thumbnail' ),
 			'capability_type' => 'page', // Allow anyone who can manage pages to manage featured items.
 			'map_meta_cap' => true,
 			'show_in_rest' => true,

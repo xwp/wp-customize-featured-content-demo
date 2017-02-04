@@ -32,7 +32,6 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 			url_placeholder: '{missing_text:url_placeholder}',
 			related_placeholder: '{missing_text:related_placeholder}',
 			title_label: '{missing_text:title}',
-			excerpt_label: '{missing_text:description}',
 			position_label: '{missing_text:position}',
 			status_label: '{missing_text:status}',
 			customize_action: '{missing_text:customize_action}'
@@ -46,7 +45,6 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 				'related',
 				'featured_media',
 				'title',
-				'excerpt',
 				'url'
 			];
 			_.each( order, function( property, priority ) {
@@ -174,7 +172,6 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 			section.addFeaturedImageControl();
 			section.addRelatedPostControl();
 			section.addTitleControl();
-			section.addExcerptControl();
 			section.addURLControl();
 			section.addStatusControl();
 		},
@@ -444,47 +441,6 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 					api( customizeId ).set( args[1] );
 				}
 			} );
-
-			return control;
-		},
-
-		/**
-		 * Add excerpt text control.
-		 *
-		 * @returns {wp.customize.Control} Added control.
-		 */
-		addExcerptControl: function addExcerptControl() {
-			var section = this, control, customizeId, updateRelatedState;
-			customizeId = section.id + '[excerpt]'; // Both the the ID for the control and the setting.
-			control = new api.controlConstructor.featured_item_field( customizeId, {
-				params: {
-					section: section.id,
-					priority: section.controlPriorities.excerpt,
-					label: section.l10n.excerpt_label,
-					active: true,
-					settings: {
-						'default': customizeId
-					},
-					field_type: 'textarea'
-				}
-			} );
-			api.control.add( control.id, control );
-
-			/**
-			 * Update the control in response to changes to the related post.
-			 *
-			 * @returns {void}
-			 */
-			updateRelatedState = function() {
-				control.placeholder.set( '' );
-				if ( section.params.item.get( 'related' ) ) {
-					section.getRelatedPost().done( function( post ) {
-						control.placeholder.set( $( post.get( 'excerpt' ).rendered ).text() );
-					} );
-				}
-			};
-			section.params.item.on( 'change:related', updateRelatedState );
-			updateRelatedState();
 
 			return control;
 		},

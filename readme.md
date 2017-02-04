@@ -15,7 +15,7 @@ Select items to feature on your site.
 ## Description ##
 
 This plugin provides an advanced demonstration of how to build a customizer interface for selecting items to feature on your site.
-Items have a title, URL, featured image, and excerpt which are pulled from an optional related post or they can be selectively overridden as desired.
+Items have a title, URL, and featured image which are pulled from an optional related post or they can be selectively overridden as desired.
 
 This plugin depends on first having the <a href="https://wordpress.org/plugins/customize-object-selector/">Customize Object Selector</a> plugin installed and activated. Without this plugin active, you won't be able to select a related post and will have to enter the title, featured image, and URL for each item.
 
