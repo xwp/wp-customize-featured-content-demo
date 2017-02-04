@@ -272,7 +272,6 @@ wp.customize.panelConstructor.featured_items = (function( api, $ ) {
 			delete properties._links;
 			delete properties.id;
 			properties.title = properties.title.raw;
-			properties.excerpt = properties.excerpt.raw;
 
 			Setting = Setting = api.settingConstructor.featured_item_property;
 			_.each( properties, function( propertyValue, propertyName ) {

@@ -253,13 +253,6 @@ wp.customize.selectiveRefresh.partialConstructor.featured_item = (function( api,
 					api.preview.send( 'focus-control-for-setting', partial.id + '[featured_media]' );
 				}
 			} );
-			placement.container.find( '.excerpt' ).on( 'click', function( event ) {
-				if ( event.shiftKey ) {
-					event.preventDefault();
-					event.stopPropagation(); // Prevent partial's default showControl behavior.
-					api.preview.send( 'focus-control-for-setting', partial.id + '[excerpt]' );
-				}
-			} );
 		}
 	});
 

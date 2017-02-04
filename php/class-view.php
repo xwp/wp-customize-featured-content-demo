@@ -102,29 +102,6 @@ class View {
 	}
 
 	/**
-	 * Get rendered excerpt.
-	 *
-	 * @param string $excerpt Raw excerpt.
-	 * @param int    $id      Item (post) ID.
-	 * @return string Rendered excerpt.
-	 */
-	public function get_rendered_excerpt( $excerpt, $id ) {
-		$post = get_post( $id );
-
-		// Make post global because get_the_content() requires the global. Sad!
-		$GLOBALS['post'] = $post;
-		setup_postdata( $GLOBALS['post'] );
-
-		/** This filter is documented in wp-includes/post-template.php */
-		$excerpt = apply_filters( 'the_excerpt', apply_filters( 'get_the_excerpt', $excerpt, $post ) );
-
-		$excerpt = convert_smilies( $excerpt );
-
-		wp_reset_postdata();
-		return $excerpt;
-	}
-
-	/**
 	 * Render item.
 	 *
 	 * @param int $id Featured item ID.
@@ -146,9 +123,6 @@ class View {
 			}
 			if ( ! $item['title'] ) {
 				$item['title'] = $related_post->post_title;
-			}
-			if ( ! $item['excerpt'] ) {
-				$item['excerpt'] = $related_post->post_excerpt;
 			}
 			if ( ! $item['featured_media'] ) {
 				$item['featured_media'] = get_post_thumbnail_id( $related_post );
@@ -184,11 +158,6 @@ class View {
 					<?php echo wp_get_attachment_image( $rendered_item['featured_media'], 'thumbnail' ); ?>
 				<?php endif; ?>
 			</a>
-			<?php if ( $rendered_item['excerpt'] ) : ?>
-				<div class="excerpt">
-					<?php echo $rendered_item['excerpt']; // WPCS: XSS OK. ?>
-				</div>
-			<?php endif; ?>
 		</li>
 		<?php
 	}
