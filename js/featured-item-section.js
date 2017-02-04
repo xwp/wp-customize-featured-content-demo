@@ -244,16 +244,23 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 		/**
 		 * Keep the status updated in the UI when the status updates in the setting.
 		 *
+		 * Also inform the preview of when an item is untrashed.
+		 *
 		 * @returns {void}
 		 */
 		syncStatusWithUI: function syncTitleWithUI() {
 			var section = this;
 			api( section.id + '[status]', function( statusSetting ) {
-				var setStatus = function() {
-					section.headContainer.toggleClass( 'trashed', 'trash' === statusSetting() );
+				var onStatusChanged = function( newStatus, oldStatus ) {
+					section.headContainer.toggleClass( 'trashed', 'trash' === newStatus );
+
+					// Announce the untrashing of the item to the preview so that a partial can ensured.
+					if ( 'trash' === oldStatus ) {
+						api.previewer.send( 'featured-item-untrashed', section.params.item.id );
+					}
 				};
-				statusSetting.bind( setStatus );
-				setStatus();
+				statusSetting.bind( onStatusChanged );
+				onStatusChanged( statusSetting() ); // Set initial state.
 			} );
 		},
 
