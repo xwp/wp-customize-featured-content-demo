@@ -187,7 +187,7 @@ wp.customize.panelConstructor.featured_items = (function( api, $ ) {
 				/**
 				 * Get related post.
 				 *
-				 * @this {Backbone.Model}
+				 * @this {wp.api.WPApiBaseModel}
 				 * @returns {Deferred.promise} Promise resolving with related post.
 				 */
 				panel.FeaturedItem.prototype.getRelatedPost = function getRelatedPost() {

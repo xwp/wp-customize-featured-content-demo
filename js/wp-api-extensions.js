@@ -5,6 +5,11 @@
 	 * Build a helper function to retrieve related model.
 	 *
 	 * This is forked from wp-api.js, which also does not expose buildModelGetter publicly.
+	 *
+	 * @todo This function should be eliminated once WP-API/client-js#158 and WP-API/client-js#159 are merged and deployed into Core.
+	 *
+	 * @link https://github.com/WP-API/client-js/pull/158
+	 * @link https://github.com/WP-API/client-js/pull/159
 	 * @link https://github.com/WordPress/wordpress-develop/blob/acd6d129b928663a5b4ce1616e25819ccf666f4e/src/wp-includes/js/wp-api.js#L288-L340
 	 *
 	 * @param  {Backbone.Model} parentModel      The parent model.

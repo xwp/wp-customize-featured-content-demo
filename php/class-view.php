@@ -46,6 +46,7 @@ class View {
 	 */
 	public function add_hooks() {
 		add_action( 'init', array( $this, 'register_shortcode' ) );
+		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
 	}
 
 	/**
@@ -58,6 +59,14 @@ class View {
 			$view->render_items();
 			return ob_get_clean();
 		} );
+	}
+
+	/**
+	 * Enqueue scripts.
+	 */
+	public function enqueue_scripts() {
+		wp_enqueue_script( 'customize-featured-content-demo-frontend' );
+		wp_enqueue_style( 'customize-featured-content-demo-frontend' );
 	}
 
 	/**
@@ -77,10 +86,45 @@ class View {
 			return;
 		}
 
-		echo '<ul class="featured-content-items">';
-		foreach ( $item_ids as $item_id ) {
-			$this->render_item( $item_id );
+		$rest_server = rest_get_server();
+		$route = '/wp/v2/' . $this->plugin->model->object->rest_base;
+		$request = new \WP_REST_Request( 'GET', $route );
+		$response = $rest_server->dispatch( $request );
+
+		/*
+		 * Force related posts to use the view context instead of the embed context.
+		 * This is needed because for some reason the featured_media field is marked
+		 * as only having the view and edit contexts.
+		 */
+		foreach ( $response->data as &$featured_item_data ) {
+			if ( empty( $featured_item_data['_links']['related'] ) ) {
+				continue;
+			}
+			foreach ( $featured_item_data['_links']['related'] as &$link ) {
+				$link['href'] = add_query_arg( 'context', 'view', $link['href'] );
+			}
 		}
+
+		/** This filter is documented in wp-includes/rest-api/class-wp-rest-server.php */
+		$response = apply_filters( 'rest_post_dispatch', $response, $rest_server, $request );
+
+		$response_data = $rest_server->response_to_data( $response, true );
+
+		// Ensure the links for the linked items also get embedded (2-levels deep).
+		foreach ( $response_data as &$featured_item ) {
+			if ( empty( $featured_item['_embedded']['related'] ) ) {
+				continue;
+			}
+			foreach ( $featured_item['_embedded']['related'] as &$related ) {
+				$post_response = rest_ensure_response( $related );
+				$related = $rest_server->response_to_data( $post_response, true );
+			}
+		}
+
+		echo '<ul class="featured-content-items">';
+		echo '<script type="application/json">';
+		echo wp_json_encode( $response_data );
+		echo '</script>';
 		echo '</ul>';
 	}
 
@@ -104,75 +148,9 @@ class View {
 	/**
 	 * Render item.
 	 *
-	 * @param int $id Featured item ID.
+	 * @deprecated
 	 */
-	function render_item( $id ) {
-		$item = $this->plugin->model->get_item( $id );
-		if ( ! $item || 'trash' === $item['status'] ) {
-			return;
-		}
-
-		$item_schema_properties = $this->plugin->model->get_item_schema_properties();
-
-		$related_post = ! empty( $item['related'] ) ? get_post( $item['related'] ) : null;
-		if ( $related_post ) {
-			$GLOBALS['post'] = $related_post;
-			setup_postdata( $related_post ); // Gives a chance for Customize Posts to preview.
-			if ( ! $item['url'] ) {
-				$item['url'] = get_permalink( $related_post->ID );
-			}
-			if ( ! $item['title'] ) {
-				$item['title'] = $related_post->post_title;
-			}
-			if ( ! $item['featured_media'] ) {
-				$item['featured_media'] = get_post_thumbnail_id( $related_post );
-			}
-			wp_reset_postdata();
-		}
-
-		$rendered_item = array();
-		foreach ( $item_schema_properties as $field_id => $field_schema ) {
-			if ( isset( $field_schema['arg_options']['rendering']['callback'] ) ) {
-				$render_callback = $field_schema['arg_options']['rendering']['callback'];
-				$rendered_item[ $field_id ] = call_user_func(
-					$render_callback,
-					$item[ $field_id ],
-					$id
-				);
-			} else {
-				$rendered_item[ $field_id ] = $item[ $field_id ];
-			}
-		}
-
-		$title_style = '';
-		if ( $rendered_item['title_color'] ) {
-			$title_style .= sprintf( 'color: %s;', $rendered_item['title_color'] );
-		}
-		if ( $rendered_item['title_background'] ) {
-			$title_style .= sprintf( 'background-color: %s;', $rendered_item['title_background'] );
-		}
-		if ( $rendered_item['title_left'] ) {
-			$title_style .= sprintf( 'left: %dpx;', $rendered_item['title_left'] );
-		}
-		if ( $rendered_item['title_top'] ) {
-			$title_style .= sprintf( 'top: %dpx;', $rendered_item['title_top'] );
-		}
-
-		?>
-		<li
-			class="featured-content-item"
-			data-customize-partial-id="<?php echo esc_attr( "featured_item[$id]" ); ?>"
-			data-customize-partial-type="featured_item"
-		>
-			<a <?php if ( $rendered_item['url'] ) { printf( ' href="%s"', esc_url( $rendered_item['url'] ) ); } ?>>
-				<span class="title" <?php if ( $title_style ) { printf( ' style="%s"', esc_attr( $title_style ) ); } ?>>
-					<?php echo $rendered_item['title']; // WPCS: XSS OK. ?>
-				</span>
-				<?php if ( $rendered_item['featured_media'] ) : ?>
-					<?php echo wp_get_attachment_image( $rendered_item['featured_media'], 'thumbnail' ); ?>
-				<?php endif; ?>
-			</a>
-		</li>
-		<?php
+	function render_item() {
+		_deprecated_function( __METHOD__, '0.2.0' );
 	}
 }

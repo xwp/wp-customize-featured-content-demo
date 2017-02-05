@@ -77,8 +77,6 @@ class Plugin {
 		$priority = 20; // Due to \Customize_Posts_Plugin::register_scripts() running at priority 11.
 		add_action( 'wp_default_scripts', array( $this, 'register_scripts' ), $priority );
 		add_action( 'wp_default_styles', array( $this, 'register_styles' ), 20 );
-
-		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_frontend_dependencies' ) );
 	}
 
 	/**
@@ -233,6 +231,17 @@ class Plugin {
 			'customize-featured-item-partial',
 		);
 		$wp_scripts->add( $handle, $src, $deps, $this->version );
+
+		// Frontend.
+		$handle = 'customize-featured-content-demo-frontend';
+		$src = $plugin_dir_url . 'js/frontend.js';
+		$deps = array(
+			'wp-util',
+			'wp-api',
+			'customize-featured-items-wp-api-extensions',
+			'jquery',
+		);
+		$wp_scripts->add( $handle, $src, $deps, $this->version );
 	}
 
 	/**
@@ -257,14 +266,5 @@ class Plugin {
 		$src = $plugin_dir_url . 'css/frontend.css';
 		$deps = array();
 		$wp_styles->add( $handle, $src, $deps, $this->version );
-	}
-
-	/**
-	 * Enqueue scripts and styles on the frontend.
-	 *
-	 * @access public
-	 */
-	function enqueue_frontend_dependencies() {
-		wp_enqueue_style( 'customize-featured-content-demo-frontend' );
 	}
 }
