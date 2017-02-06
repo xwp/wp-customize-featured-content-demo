@@ -157,7 +157,7 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 		 * Since controls are dynamically added once the section is expanded,
 		 * this must always return true.
 		 *
-		 * @return {boolean}
+		 * @return {boolean} Whether contextually active.
 		 */
 		isContextuallyActive: function() {
 			return true;

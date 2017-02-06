@@ -18,6 +18,7 @@ wp.customize.controlConstructor.featured_item_status = (function( api, $ ) {
 		 *
 		 * @param {string} id - Control ID.
 		 * @param {Object} options - Options.
+		 * @returns {void}
 		 */
 		initialize: function( id, options ) {
 			var control = this, args;
@@ -59,6 +60,8 @@ wp.customize.controlConstructor.featured_item_status = (function( api, $ ) {
 
 		/**
 		 * Update trash/untrash toggle button.
+		 *
+		 * @returns {void}
 		 */
 		updateButton: function updateButton() {
 			var control = this, isTrashed;

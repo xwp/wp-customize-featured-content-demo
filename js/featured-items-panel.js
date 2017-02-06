@@ -71,17 +71,16 @@ wp.customize.panelConstructor.featured_items = (function( api, $ ) {
 		 *
 		 * This is partially copied from the control.
 		 *
+		 * Note that this debounced/deferred rendering is needed for two reasons:
+		 * 1) The 'remove' event is triggered just _before_ the notification is actually removed.
+		 * 2) Improve performance when adding/removing multiple notifications at a time.
+		 *
 		 * @see wp.customize.Control.prototype.initialize()
 		 * @returns {void}
 		 */
 		setupNotifications: function setupNotifications() {
-			var panel = this;
-			/*
-			 * Note that this debounced/deferred rendering is needed for two reasons:
-			 * 1) The 'remove' event is triggered just _before_ the notification is actually removed.
-			 * 2) Improve performance when adding/removing multiple notifications at a time.
-			 */
-			var debouncedRenderNotifications = _.debounce( function renderNotifications() {
+			var panel = this, debouncedRenderNotifications;
+			debouncedRenderNotifications = _.debounce( function renderNotifications() {
 				panel.renderNotifications();
 			} );
 			panel.notifications.bind( 'add', function( notification ) {
@@ -106,7 +105,7 @@ wp.customize.panelConstructor.featured_items = (function( api, $ ) {
 		 * control's method is unnecessary.
 		 *
 		 * @see wp.customize.Control.getNotificationsContainerElement()
-		 * @returns {jQuery}
+		 * @returns {jQuery} Notifications container.
 		 */
 		getNotificationsContainerElement: function getNotificationsContainerElement() {
 			var panel = this;
@@ -124,7 +123,7 @@ wp.customize.panelConstructor.featured_items = (function( api, $ ) {
 		 * Since new featured items can be created from from the empty panel,
 		 * it should always be active.
 		 *
-		 * @return {boolean}
+		 * @returns {boolean} Whether contextually-active.
 		 */
 		isContextuallyActive: function() {
 			return true;
@@ -162,7 +161,7 @@ wp.customize.panelConstructor.featured_items = (function( api, $ ) {
 		/**
 		 * Load items.
 		 *
-		 * @returns {jQuery.promise}
+		 * @returns {jQuery.promise} Promise resolving when items are fetched.
 		 */
 		loadItems: function loadItems() {
 			var panel = this, reject, deferred = $.Deferred();
@@ -187,7 +186,7 @@ wp.customize.panelConstructor.featured_items = (function( api, $ ) {
 				 * Get related post.
 				 *
 				 * @this {Backbone.Model}
-				 * @return {Deferred.promise}
+				 * @returns {Deferred.promise} Promise resolving with related post.
 				 */
 				panel.FeaturedItem.prototype.getRelatedPost = function getRelatedPost() {
 					var item = this; // eslint-disable-line consistent-this
@@ -233,7 +232,7 @@ wp.customize.panelConstructor.featured_items = (function( api, $ ) {
 		/**
 		 * Create a featured item section when a featured item setting is added.
 		 *
-		 * @returns {jQuery}
+		 * @returns {void}
 		 */
 		setupAdditionButton: function setupAdditionButton() {
 			var panel = this, button, additionContainer;
@@ -260,7 +259,7 @@ wp.customize.panelConstructor.featured_items = (function( api, $ ) {
 							// Focus on the related post control.
 							api.control( createdItem.section.id + '[related]', function focusControl( control ) {
 								var wait = 250; // This delay seems to be required by object selector control and Select2.
-								_.delay( function() {
+								_.delay( function() { // eslint-disable-line max-nested-callbacks
 									control.focus();
 								}, wait );
 							} );
@@ -302,8 +301,8 @@ wp.customize.panelConstructor.featured_items = (function( api, $ ) {
 				item.set( { status: 'publish' } );
 
 				// Bump all existing featured items up in position so the new item will be added to the top (first).
-				panel.itemsCollection.each( function( item ) {
-					var positionSetting = panel.getPropertySetting( item.id, 'position' );
+				panel.itemsCollection.each( function( otherItem ) {
+					var positionSetting = panel.getPropertySetting( otherItem.id, 'position' );
 					if ( positionSetting ) {
 						positionSetting.set( positionSetting.get() + 1 );
 					}
@@ -473,7 +472,7 @@ wp.customize.panelConstructor.featured_items = (function( api, $ ) {
 		purgeTrashedItems: function purgeTrashedItems() {
 			var panel = this, removedItems = [];
 
-			panel.itemsCollection.each( function( item ) {
+			panel.itemsCollection.each( function( item ) { // eslint-disable-line complexity
 				var section, statusSetting;
 				statusSetting = panel.getPropertySetting( item.id, 'status' );
 				if ( ! statusSetting || 'trash' !== statusSetting.get() ) {
@@ -535,7 +534,7 @@ wp.customize.panelConstructor.featured_items = (function( api, $ ) {
 		 * @param  {string}         embedCheckField  Which model field to check to see if the model has data.
 		 * @return {Deferred.promise}        A promise which resolves to the constructed model.
 		 */
-		buildModelGetter: function buildModelGetter( parentModel, modelId, modelName, embedSourcePoint, embedCheckField ) {
+		buildModelGetter: function buildModelGetter( parentModel, modelId, modelName, embedSourcePoint, embedCheckField ) { // eslint-disable-line max-params, complexity
 			var getModel, embeddeds, attributes, deferred;
 
 			deferred  = jQuery.Deferred();
@@ -562,19 +561,19 @@ wp.customize.panelConstructor.featured_items = (function( api, $ ) {
 
 			if ( ! getModel.get( embedCheckField ) ) {
 				getModel.fetch( {
-					success: function( getModel ) {
+					success: function( model ) {
 						/* >>>>>>>>>>>> BEGIN PATCH TO CACHE EMBEDDED */
 						var updatedEmbeddeds = _.clone( parentModel.get( '_embedded' ) || {} );
 						if ( ! updatedEmbeddeds[ embedSourcePoint ] ) {
 							updatedEmbeddeds[ embedSourcePoint ] = [];
 						}
-						updatedEmbeddeds[ embedSourcePoint ].push( getModel.attributes );
+						updatedEmbeddeds[ embedSourcePoint ].push( model.attributes );
 						parentModel.set( '_embedded', updatedEmbeddeds );
 						/* <<<<<<<<<<<<< END PATCH TO CACHE EMBEDDED */
 
-						deferred.resolve( getModel );
+						deferred.resolve( model );
 					},
-					error: function( getModel, response ) {
+					error: function( model, response ) {
 						deferred.reject( response );
 					}
 				} );

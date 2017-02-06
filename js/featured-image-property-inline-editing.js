@@ -1,5 +1,5 @@
 /* global wp */
-/* eslint consistent-this: [ "error", "component" ] */
+/* eslint consistent-this: [ "error", "component" ], complexity: [ "error", 4 ] */
 wp.customize.featuredContent.PropertyInlineEditing = (function( api, $ ) {
 	'use strict';
 
@@ -12,7 +12,7 @@ wp.customize.featuredContent.PropertyInlineEditing = (function( api, $ ) {
 		 * Initialize.
 		 *
 		 * @constructor
-		 * @param {object} args
+		 * @param {object}                                  args           - Args.
 		 * @param {wp.customize.selectiveRefresh.Placement} args.placement - Placement.
 		 * @param {string}                                  args.selector  - Selector for the container being edited.
 		 * @param {string}                                  args.property  - Name of setting property.
@@ -111,7 +111,7 @@ wp.customize.featuredContent.PropertyInlineEditing = (function( api, $ ) {
 		/**
 		 * Get the setting for the property.
 		 *
-		 * @return {wp.customize.Value|null}
+		 * @returns {wp.customize.Value|null} Setting, or null if it does not exist.
 		 */
 		getSetting: function getSetting() {
 			var component = this;

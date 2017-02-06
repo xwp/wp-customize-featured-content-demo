@@ -1,5 +1,5 @@
 /* global wp */
-/* eslint consistent-this: [ "error", "setting" ] */
+/* eslint consistent-this: [ "error", "setting" ], no-magic-numbers: [ "error", { "ignore": [-1,0,1,2,3] } ] */
 
 wp.customize.settingConstructor.featured_item_property = (function( api ) {
 	'use strict';
@@ -37,7 +37,7 @@ wp.customize.settingConstructor.featured_item_property = (function( api ) {
 		 * Validate/sanitize setting.
 		 *
 		 * @param {*} originalValue Value.
-		 * @returns {*}
+		 * @returns {*} Sanitized value or null if invalid.
 		 */
 		validate: function validate( originalValue ) {
 			var setting = this, value;

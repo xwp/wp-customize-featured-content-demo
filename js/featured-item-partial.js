@@ -1,5 +1,5 @@
 /* global wp */
-/* eslint consistent-this: [ "error", "partial" ], no-magic-numbers: [ "error", { "ignore": [-1,0,1] } ] */
+/* eslint consistent-this: [ "error", "partial" ], no-magic-numbers: [ "error", { "ignore": [-1,0,1] } ], complexity: [ "error", 4 ] */
 
 wp.customize.selectiveRefresh.partialConstructor.featured_item = (function( api, $ ) {
 	'use strict';
@@ -158,7 +158,7 @@ wp.customize.selectiveRefresh.partialConstructor.featured_item = (function( api,
 		/**
 		 * Request the new partial and render it into the placements.
 		 *
-		 * @return {jQuery.Promise}
+		 * @return {jQuery.Promise} Refresh promise.
 		 */
 		refresh: function refresh() {
 			var partial = this, statusSetting;

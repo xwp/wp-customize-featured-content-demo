@@ -18,6 +18,7 @@ wp.customize.controlConstructor.featured_item_field = (function( api, $ ) {
 		 *
 		 * @param {string} id - Control ID.
 		 * @param {Object} options - Options.
+		 * @returns {void}
 		 */
 		initialize: function( id, options ) {
 			var control = this, args;
