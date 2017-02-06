@@ -26,9 +26,7 @@ wp.customize.featuredContent.pane = (function( api ) {
 	 *
 	 * @returns {void}
 	 */
-	component.ready = function paneReady() {
-		// @todo This isn't needed anymore.
-	};
+	component.ready = function paneReady() {};
 
 	return component;
 
