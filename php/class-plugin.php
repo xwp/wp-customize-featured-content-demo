@@ -166,6 +166,13 @@ class Plugin {
 			'customize-featured-item-section',
 		);
 		$wp_scripts->add( $handle, $src, $deps, $this->version );
+		$wp_scripts->add_inline_script( $handle, sprintf(
+			'_.extend( wp.customize.panelConstructor.featured_items.prototype.l10n, %s );',
+			wp_json_encode( array(
+				'load_items_failure' => __( 'Failed to load featured items.', 'customize-featured-content-demo' ),
+				'create_item_failure' => __( 'Failed to create featured item draft.', 'customize-featured-content-demo' ),
+			) )
+		) );
 
 		// Pane (Controls).
 		$handle = 'customize-featured-content-demo-pane';

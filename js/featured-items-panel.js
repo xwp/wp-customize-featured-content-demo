@@ -27,6 +27,12 @@ wp.customize.panelConstructor.featured_items = (function( api, $ ) {
 		 */
 		FeaturedItem: null,
 
+		// This is overridden by \WP_Scripts::add_inline_script() PHP in Plugin::register_scripts().
+		l10n: {
+			load_items_failure: '{missing_text:load_items_failure}',
+			create_item_failure: '{missing_text:get_items_failure}'
+		},
+
 		/**
 		 * Ready.
 		 *
@@ -36,6 +42,7 @@ wp.customize.panelConstructor.featured_items = (function( api, $ ) {
 			var panel = this, onceActive;
 			api.Panel.prototype.ready.call( panel );
 
+			panel.notifications = new api.Values({ defaultConstructor: api.Notification });
 			panel.loading = new api.Value();
 
 			// Finish initialization once the panel is active/contextual.
@@ -57,6 +64,56 @@ wp.customize.panelConstructor.featured_items = (function( api, $ ) {
 					panel.collapse();
 				}
 			} );
+		},
+
+		/**
+		 * Setup panel notifications.
+		 *
+		 * This is partially copied from the control.
+		 *
+		 * @see wp.customize.Control.prototype.initialize()
+		 * @returns {void}
+		 */
+		setupNotifications: function setupNotifications() {
+			var panel = this;
+			/*
+			 * Note that this debounced/deferred rendering is needed for two reasons:
+			 * 1) The 'remove' event is triggered just _before_ the notification is actually removed.
+			 * 2) Improve performance when adding/removing multiple notifications at a time.
+			 */
+			var debouncedRenderNotifications = _.debounce( function renderNotifications() {
+				panel.renderNotifications();
+			} );
+			panel.notifications.bind( 'add', function( notification ) {
+				wp.a11y.speak( notification.message, 'assertive' );
+				debouncedRenderNotifications();
+			} );
+			panel.notifications.bind( 'remove', debouncedRenderNotifications );
+			panel.renderNotifications();
+		},
+
+		/**
+		 * Render notifications.
+		 *
+		 * Re-use method from control.
+		 */
+		renderNotifications: api.Control.prototype.renderNotifications,
+
+		/**
+		 * Get the element inside of a control's container that contains the validation error message.
+		 *
+		 * This could technically re-use the method from the control, but most of the logic in the
+		 * control's method is unnecessary.
+		 *
+		 * @see wp.customize.Control.getNotificationsContainerElement()
+		 * @returns {jQuery}
+		 */
+		getNotificationsContainerElement: function getNotificationsContainerElement() {
+			var panel = this;
+			if ( ! panel.notificationsContainer ) {
+				panel.notificationsContainer = panel.contentContainer.find( '.customize-control-notifications-container:first' );
+			}
+			return panel.notificationsContainer;
 		},
 
 		/**
@@ -85,7 +142,8 @@ wp.customize.panelConstructor.featured_items = (function( api, $ ) {
 		finishInitialization: function finishInitialization() {
 			var panel = this;
 
-			panel.injectAdditionButton();
+			panel.setupNotifications();
+			panel.setupAdditionButton();
 			panel.setupSectionSorting();
 
 			// Purge trashed items when the changeset is published.
@@ -95,9 +153,8 @@ wp.customize.panelConstructor.featured_items = (function( api, $ ) {
 				}
 			} );
 
-			// @todo Show error when the collection request fails.
 			panel.loading.set( true ); // Show spinner with addition button disabled.
-			panel.loadItems().done( function() {
+			panel.loadItems().always( function() {
 				panel.loading.set( false ); // Hide spinner and enable addition button.
 			} );
 		},
@@ -105,11 +162,17 @@ wp.customize.panelConstructor.featured_items = (function( api, $ ) {
 		/**
 		 * Load items.
 		 *
-		 * @returns {void}
+		 * @returns {jQuery.promise}
 		 */
 		loadItems: function loadItems() {
 			var panel = this, reject, deferred = $.Deferred();
 			reject = function( err ) {
+				var notificationCode = 'load_items_failure', notification;
+				notification = new api.Notification( notificationCode, {
+					message: panel.l10n.load_items_failure,
+					type: 'error'
+				} );
+				panel.notifications.add( notificationCode, notification );
 				deferred.reject( err );
 			};
 			wp.api.init().fail( reject ).done( function() {
@@ -172,26 +235,35 @@ wp.customize.panelConstructor.featured_items = (function( api, $ ) {
 		 *
 		 * @returns {jQuery}
 		 */
-		injectAdditionButton: function injectAdditionButton() {
-			var panel = this, container, button, additionFailure;
+		setupAdditionButton: function setupAdditionButton() {
+			var panel = this, button, additionContainer;
 
-			container = $( wp.template( 'featured-items-customize-panel-addition-ui' )() );
-			button = container.find( 'button' );
-			additionFailure = container.find( '.addition-failure' );
+			additionContainer = panel.contentContainer.find( '.featured-items-addition:first' );
+			button = additionContainer.find( 'button' );
 			button.on( 'click', function() {
-				var promise = panel.createItem();
+				var promise, notificationCode;
+				promise = panel.createItem();
+				notificationCode = 'addition_failure';
 				panel.loading.set( true );
-				additionFailure.slideUp();
+				panel.notifications.remove( notificationCode );
 				promise.fail( function() {
-					additionFailure.stop().slideDown();
-					wp.a11y.speak( additionFailure.text() );
+					var notification = new api.Notification( notificationCode, {
+						message: panel.l10n.create_item_failure,
+						type: 'error'
+					} );
+					panel.notifications.add( notificationCode, notification );
 				} );
 				promise.done( function( createdItem ) {
-					createdItem.section.expand();
-					_.defer( function() {
-						var firstControl = _.first( createdItem.section.controls() );
-						if ( firstControl ) {
-							firstControl.focus();
+					createdItem.section.expand( {
+						completeCallback: function() {
+
+							// Focus on the related post control.
+							api.control( createdItem.section.id + '[related]', function focusControl( control ) {
+								var wait = 250; // This delay seems to be required by object selector control and Select2.
+								_.delay( function() {
+									control.focus();
+								}, wait );
+							} );
 						}
 					} );
 				} );
@@ -199,8 +271,6 @@ wp.customize.panelConstructor.featured_items = (function( api, $ ) {
 					panel.loading.set( false );
 				} );
 			} );
-
-			panel.contentContainer.find( '.panel-meta:first' ).append( container );
 
 			panel.loading.bind( function( isLoading ) {
 				button.prop( 'disabled', isLoading );

@@ -13,13 +13,14 @@
 	cursor: pointer;
 }
 
-
-#customize-controls .control-panel-featured_items > .panel-meta {
-	border-bottom: 0;
+.control-panel-featured_items > .customize-control-notifications-container > ul {
+	padding-left: 12px;
+	padding-right: 12px;
 }
-.featured-items-addition {
-	border-top: 1px solid #ddd;
-	padding: 15px 12px 0 15px;
+.control-panel-featured_items > .featured-items-addition {
+	padding-left: 12px;
+	padding-right: 12px;
+	margin-bottom: 15px;
 }
 .featured-items-addition button {
 	cursor: pointer;

@@ -45,22 +45,20 @@ class Featured_Items_Customize_Panel extends \WP_Customize_Panel {
 	}
 
 	/**
-	 * Render the panel's JS templates.
+	 * Amend the content template with the panel addition UI.
 	 */
-	public function print_template() {
-		parent::print_template();
-
+	protected function content_template() {
+		parent::content_template();
 		?>
-		<script id="tmpl-featured-items-customize-panel-addition-ui" type="text/template">
-			<div class="featured-items-addition">
-				<p class="notice notice-error addition-failure" hidden>
-					<?php esc_html_e( 'Failed to create new item.', 'customize-featured-content-demo' ); ?>
-				</p>
+		<li class="customize-control-notifications-container"></li>
+		<li class="featured-items-addition">
+			<p class="notification notice notice-error" hidden>
+				<?php esc_html_e( 'Failed to create new item.', 'customize-featured-content-demo' ); ?>
+			</p>
 
-				<button type="button" class="button-secondary"><?php esc_html_e( 'Add Featured Item', 'customize-featured-content-demo' ); ?></button>
-				<span class="spinner"></span>
-			</div>
-		</script>
+			<button type="button" class="button-secondary"><?php esc_html_e( 'Add Featured Item', 'customize-featured-content-demo' ); ?></button>
+			<span class="spinner"></span>
+		</li>
 		<?php
 	}
 
