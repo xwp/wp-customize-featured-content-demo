@@ -92,6 +92,12 @@ class Plugin {
 	public function register_scripts( \WP_Scripts $wp_scripts ) {
 		$plugin_dir_url = plugin_dir_url( dirname( __FILE__ ) );
 
+		// Extensions to wp-api.
+		$handle = 'customize-featured-items-wp-api-extensions';
+		$src = $plugin_dir_url . 'js/wp-api-extensions.js';
+		$deps = array( 'wp-api' );
+		$wp_scripts->add( $handle, $src, $deps, $this->version );
+
 		// Status control.
 		$handle = 'featured-item-status-control';
 		$src = $plugin_dir_url . 'js/featured-item-status-control.js';
@@ -161,6 +167,7 @@ class Plugin {
 		$deps = array(
 			'wp-a11y',
 			'wp-api',
+			'customize-featured-items-wp-api-extensions',
 			'customize-controls',
 			'customize-featured-item-property-setting',
 			'customize-featured-item-section',
@@ -199,6 +206,7 @@ class Plugin {
 		$src = $plugin_dir_url . 'js/featured-item-partial.js';
 		$deps = array(
 			'wp-api',
+			'customize-featured-items-wp-api-extensions',
 			'customize-selective-refresh',
 			'customize-featured-item-property-inline-editing',
 		);
