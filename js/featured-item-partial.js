@@ -74,6 +74,38 @@ wp.customize.selectiveRefresh.partialConstructor.featured_item = (function( api,
 			} );
 
 			/*
+			 * Use JS for instant preview of changes to the title color and positioning.
+			 */
+			api( partial.id + '[title_color]', function( titleColorSetting ) {
+				titleColorSetting.bind( function( newTitleColor ) {
+					_.each( partial.placements(), function( placement ) {
+						placement.container.find( '.title' ).css( { color: newTitleColor } );
+					} );
+				} );
+			} );
+			api( partial.id + '[title_background]', function( titleBackgroundSetting ) {
+				titleBackgroundSetting.bind( function( newTitleColor ) {
+					_.each( partial.placements(), function( placement ) {
+						placement.container.find( '.title' ).css( { backgroundColor: newTitleColor } );
+					} );
+				} );
+			} );
+			api( partial.id + '[title_left]', function( titleLeftSetting ) {
+				titleLeftSetting.bind( function( newTitleLeft ) {
+					_.each( partial.placements(), function( placement ) {
+						placement.container.find( '.title' ).css( { left: newTitleLeft } );
+					} );
+				} );
+			} );
+			api( partial.id + '[title_top]', function( titleTopSetting ) {
+				titleTopSetting.bind( function( newTitleTop ) {
+					_.each( partial.placements(), function( placement ) {
+						placement.container.find( '.title' ).css( { top: newTitleTop } );
+					} );
+				} );
+			} );
+
+			/*
 			 * Use pure JS to update partial instead of selective refresh server request.
 			 * Since a partial is constrained to the item itself an update the the
 			 * position setting wouldn't have any effect on the placement in the page.
@@ -129,13 +161,18 @@ wp.customize.selectiveRefresh.partialConstructor.featured_item = (function( api,
 		 * @param {object} oldValue Old value.
 		 * @return {boolean} Whether the setting is related to the partial.
 		 */
-		isRelatedSetting: function isRelatedSetting( setting, newValue, oldValue ) {
+		isRelatedSetting: function isRelatedSetting( setting, newValue, oldValue ) { // eslint-disable-line complexity
 			var partial = this, settingId;
 
 			settingId = _.isString( setting ) ? setting : setting.id;
 
 			// Prevent selective refresh in response to position changes since we handle them in separately and purely in DOM.
 			if ( settingId === partial.id + '[position]' ) {
+				return false;
+			}
+
+			// Prevent selective refresh in response to color or position changes since we handle them in separately and purely in DOM.
+			if ( settingId === partial.id + '[title_color]' || settingId === partial.id + '[title_background]' || settingId === partial.id + '[title_top]' || settingId === partial.id + '[title_left]' ) {
 				return false;
 			}
 
@@ -251,6 +288,20 @@ wp.customize.selectiveRefresh.partialConstructor.featured_item = (function( api,
 					event.preventDefault();
 					event.stopPropagation(); // Prevent partial's default showControl behavior.
 					api.preview.send( 'focus-control-for-setting', partial.id + '[featured_media]' );
+				}
+			} );
+
+			placement.container.find( '.title' ).draggable( {
+				containment: placement.container.find( 'img' ),
+				scroll: false,
+				start: function() {
+					$( this ).addClass( 'dragging' );
+				},
+				stop: function( event, ui ) {
+					$( this ).removeClass( 'dragging' );
+
+					api.preview.send( 'setting', [ partial.id + '[title_left]', ui.position.left ] );
+					api.preview.send( 'setting', [ partial.id + '[title_top]', ui.position.top ] );
 				}
 			} );
 		}

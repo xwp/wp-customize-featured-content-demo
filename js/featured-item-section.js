@@ -32,6 +32,9 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 			url_placeholder: '{missing_text:url_placeholder}',
 			related_placeholder: '{missing_text:related_placeholder}',
 			title_label: '{missing_text:title}',
+			title_color_label: '{missing_text:title_color}',
+			title_background_label: '{missing_text:title_background}',
+			title_positioning: '{missing_text:title_positioning}',
 			position_label: '{missing_text:position}',
 			status_label: '{missing_text:status}',
 			customize_action: '{missing_text:customize_action}'
@@ -45,6 +48,9 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 				'related',
 				'featured_media',
 				'title',
+				'title_color',
+				'title_background',
+				'title_positioning',
 				'url'
 			];
 			_.each( order, function( property, priority ) {
@@ -173,6 +179,9 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 			section.addFeaturedImageControl();
 			section.addRelatedPostControl();
 			section.addTitleControl();
+			section.addTitleColorControl();
+			section.addTitleBackgroundControl();
+			section.addTitlePositioningControl();
 			section.addURLControl();
 			section.addStatusControl();
 		},
@@ -468,6 +477,85 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 			};
 			section.params.item.on( 'change:related', updateRelatedState );
 			updateRelatedState();
+
+			return control;
+		},
+
+		/**
+		 * Add title color control.
+		 *
+		 * @returns {wp.customize.ColorControl} Added control.
+		 */
+		addTitleColorControl: function addTitleColorControl() {
+			var section = this, control, customizeId;
+			customizeId = section.id + '[title_color]'; // Both the the ID for the control and the setting.
+			control = new api.ColorControl( customizeId, {
+				params: {
+					section: section.id,
+					priority: section.controlPriorities.title_color,
+					label: section.l10n.title_color_label,
+					active: true,
+					type: 'color', // Needed for template. Shouldn't be needed in the future.
+					settings: {
+						'default': customizeId
+					},
+					content: '<li class="customize-control customize-control-color"></li>' // This should not be needed in the future.
+				}
+			} );
+			api.control.add( control.id, control );
+
+			return control;
+		},
+
+		/**
+		 * Add title background (color) control.
+		 *
+		 * @returns {wp.customize.ColorControl} Added control.
+		 */
+		addTitleBackgroundControl: function addTitleBackgroundControl() {
+			var section = this, control, customizeId;
+			customizeId = section.id + '[title_background]'; // Both the the ID for the control and the setting.
+			control = new api.ColorControl( customizeId, {
+				params: {
+					section: section.id,
+					priority: section.controlPriorities.title_background,
+					label: section.l10n.title_background_label,
+					active: true,
+					type: 'color', // Needed for template. Shouldn't be needed in the future.
+					settings: {
+						'default': customizeId
+					},
+					content: '<li class="customize-control customize-control-color"></li>' // This should not be needed in the future.
+				}
+			} );
+			api.control.add( control.id, control );
+
+			return control;
+		},
+
+		/**
+		 * Add title positioning control.
+		 *
+		 * @returns {wp.customize.ColorControl} Added control.
+		 */
+		addTitlePositioningControl: function addTitlePositioningControl() {
+			var section = this, control, titleLeftSettingId, titleTopSettingId;
+			titleLeftSettingId = section.id + '[title_left]';
+			titleTopSettingId = section.id + '[title_top]';
+			control = new api.controlConstructor.featured_item_element_positioning( section.id + '[title_positioning]', {
+				params: {
+					section: section.id,
+					priority: section.controlPriorities.title_positioning,
+					label: section.l10n.title_positioning_label,
+					active: true,
+					settings: {
+						'default': titleTopSettingId,
+						top: titleTopSettingId,
+						left: titleLeftSettingId
+					}
+				}
+			} );
+			api.control.add( control.id, control );
 
 			return control;
 		},

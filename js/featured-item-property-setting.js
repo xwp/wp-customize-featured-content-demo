@@ -39,14 +39,20 @@ wp.customize.settingConstructor.featured_item_property = (function( api ) {
 		 * @param {*} originalValue Value.
 		 * @returns {*} Sanitized value or null if invalid.
 		 */
-		validate: function validate( originalValue ) {
+		validate: function validate( originalValue ) { // eslint-disable-line complexity
 			var setting = this, value;
 
 			value = api.Setting.prototype.validate.call( setting, originalValue );
 
-			// Force an integer empty value (0) instead of an empty string when the media control removes the selected image.
-			if ( '' === value && 'featured_media' === setting.property ) {
-				value = 0;
+			// @todo This should read from the schema.
+			// Force an integer empty value.
+			if ( 'featured_media' === setting.property || 'title_left' === setting.property || 'title_top' === setting.property ) {
+				value = parseInt( value, 10 );
+
+				// If the value was '' then make it have value of 0.
+				if ( isNaN( value ) ) {
+					value = 0;
+				}
 			}
 
 			return value;

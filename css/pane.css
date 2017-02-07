@@ -77,3 +77,18 @@
 .customize-control-featured_item_status .control-row button.toggle-trashed .untrash:before {
 	content: "\f171";
 }
+
+.customize-control-featured_item_element_positioning .number-fields {
+	display: flex;
+}
+
+.customize-control-featured_item_element_positioning .left-field {
+	margin-left: 10px;
+}
+
+.customize-control-featured_item_element_positioning input.left,
+.customize-control-featured_item_element_positioning input.top {
+	text-align: right;
+	width: 10ex;
+	vertical-align: middle;
+}

@@ -9,15 +9,30 @@
 	margin-right: 1em;
 	width: 150px;
 	display: inline-block;
+	position: relative;
+}
+.featured-content-item > a {
+	overflow: hidden;
+	display: block;
 }
 .featured-content-item .title {
 	font-weight: bold;
-	display: block;
-	margin-bottom: 0.5em;
-	display: block;
+	display: inline;
 	min-height: 1em;
+	position: absolute;
+	padding: 5px;
+	z-index: 2;
+
+	/* Prevent jQuery UI draggable from causing undesirable line wrapping upon drag start */
+	width: auto !important;
+	height: auto !important;
 }
+.featured-content-item .title.dragging {
+	cursor: move;
+}
+
 .featured-content-item img {
 	display: block;
 	margin-bottom: 0.5em;
+	z-index: 1;
 }

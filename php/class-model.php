@@ -151,6 +151,54 @@ class Model {
 					),
 				),
 			),
+			'title_color' => array(
+				'description' => __( 'The color for the title.', 'customize-featured-content-demo' ),
+				'type' => 'string',
+				'default' => '',
+				'arg_options' => array(
+					'storage' => array(
+						'object' => 'postmeta',
+						'key' => 'title_color',
+					),
+					'sanitize_callback' => array( $this, 'sanitize_color' ),
+				),
+			),
+			'title_background' => array(
+				'description' => __( 'The background color for the title.', 'customize-featured-content-demo' ),
+				'type' => 'string',
+				'default' => '',
+				'arg_options' => array(
+					'storage' => array(
+						'object' => 'postmeta',
+						'key' => 'title_background',
+					),
+					'sanitize_callback' => array( $this, 'sanitize_color' ),
+				),
+			),
+			'title_top' => array(
+				'description' => __( 'The top position for the title.', 'customize-featured-content-demo' ),
+				'type' => 'integer',
+				'minimum' => 0,
+				'default' => 10,
+				'arg_options' => array(
+					'storage' => array(
+						'object' => 'postmeta',
+						'key' => 'title_top',
+					),
+				),
+			),
+			'title_left' => array(
+				'description' => __( 'The left position for the title.', 'customize-featured-content-demo' ),
+				'type' => 'integer',
+				'minimum' => 0,
+				'default' => 10,
+				'arg_options' => array(
+					'storage' => array(
+						'object' => 'postmeta',
+						'key' => 'title_left',
+					),
+				),
+			),
 		);
 	}
 
@@ -169,6 +217,23 @@ class Model {
 		}
 
 		$value = sanitize_text_field( $value );
+		return $value;
+	}
+
+	/**
+	 * Validate and sanitize color.
+	 *
+	 * @param string $value  The color value.
+	 * @param array  $args   Schema array to use for validation.
+	 * @return string|\WP_Error
+	 */
+	public function sanitize_color( $value, $args ) {
+		$value = rest_sanitize_value_from_schema( $value, $args );
+
+		if ( is_null( sanitize_hex_color( $value ) ) ) {
+			return new \WP_Error( 'illegal_hex_color', __( 'Malformed hex color.', 'customize-featured-content-demo' ) );
+		}
+
 		return $value;
 	}
 

@@ -110,6 +110,12 @@ class Plugin {
 		$deps = array( 'customize-controls' );
 		$wp_scripts->add( $handle, $src, $deps, $this->version );
 
+		// Element positioning control.
+		$handle = 'featured-item-element-positioning-control';
+		$src = $plugin_dir_url . 'js/featured-item-element-positioning-control.js';
+		$deps = array( 'customize-controls' );
+		$wp_scripts->add( $handle, $src, $deps, $this->version );
+
 		// Base namespace.
 		$handle = 'customize-featured-content-demo-base';
 		$src = $plugin_dir_url . 'js/base.js';
@@ -133,6 +139,7 @@ class Plugin {
 			'customize-controls',
 			'featured-item-status-control',
 			'featured-item-field-control',
+			'featured-item-element-positioning-control',
 		);
 		$wp_scripts->add( $handle, $src, $deps, $this->version );
 		$wp_scripts->add_inline_script( $handle, sprintf(
@@ -155,6 +162,9 @@ class Plugin {
 				'related_plugin_dependency' => __( 'The <a href="https://wordpress.org/plugins/customize-object-selector/" target="_blank">Customize Object Selector</a> plugin must be installed and activated to select a related post.', 'customize-featured-content-demo' ),
 				'related_placeholder' => __( 'Search items', 'customize-featured-content-demo' ),
 				'title_label' => __( 'Title', 'customize-featured-content-demo' ),
+				'title_color_label' => __( 'Title Color', 'customize-featured-content-demo' ),
+				'title_background_label' => __( 'Title Background Color', 'customize-featured-content-demo' ),
+				'title_positioning_label' => __( 'Title Positioning', 'customize-featured-content-demo' ),
 				'position_label' => __( 'Position', 'customize-featured-content-demo' ),
 				'status_label' => __( 'Status', 'customize-featured-content-demo' ),
 				'customize_action' => __( 'Customizing featured item:', 'customize-featured-content-demo' ),
@@ -208,6 +218,7 @@ class Plugin {
 			'wp-api',
 			'customize-featured-items-wp-api-extensions',
 			'customize-selective-refresh',
+			'jquery-ui-draggable',
 			'customize-featured-item-property-inline-editing',
 			'jquery-ui-sortable',
 		);

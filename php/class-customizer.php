@@ -228,6 +228,7 @@ class Customizer {
 
 		$this->manager->register_control_type( __NAMESPACE__ . '\Featured_Item_Field_Customize_Control' );
 		$this->manager->register_control_type( __NAMESPACE__ . '\Featured_Item_Status_Customize_Control' );
+		$this->manager->register_control_type( __NAMESPACE__ . '\Featured_Item_Element_Positioning_Customize_Control' );
 
 		// Note that settings and sections will by dynamically added via JS.
 		$panel = new Featured_Items_Customize_Panel( $this->manager, 'featured_items', array(
