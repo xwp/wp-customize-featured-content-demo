@@ -25,3 +25,19 @@ You may also render the items as part of your theme with the following example c
 	<?php \Customize_Featured_Content_Demo\render_items(); ?>
 <?php endif; ?>
 </pre>
+
+== Changelog ==
+
+= 0.1.0 =
+
+* Featured Items panel is contextual to previewing URLs that have featured items rendered.
+* New items can be added (via `auto-draft` status).
+* Items can be trashed (and untrashed).
+* Selecting related post to serve as the basis of the item. Related post provides default featured item, title, excerpt, and URL which all appear as placeholders.
+* Allows overriding featured image, title, and URL which come from the related post.
+* Shift-click on featured image to focus on the corresponding control.
+* Shift-click on title to inline edit. Edit mode reveals raw value and upon blur/enter/esc the partial refreshes with the rendered title. (Try adding :-) or "double-quotes" and -- dashes to see filters apply.)
+* Re-ordering items via drag-and-drop of sections; items rearrange without any selective refresh request.
+* Featured item data are lazy-loaded from the REST API. No settings are registered statically; all are recognized dynamically.
+* All sections, controls, and partials are constructed only when needed.
+* Custom post type has `Model` abstraction in front of it which has a schema which is then used to define the REST API endpoints and the customizer settings alike.
