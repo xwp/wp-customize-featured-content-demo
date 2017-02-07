@@ -1,6 +1,6 @@
 /* global wp */
 
-wp.customize.featuredContent.preview = (function( api ) {
+wp.customize.featuredContent.preview = (function( api, $ ) {
 	'use strict';
 
 	var component = {
@@ -32,6 +32,8 @@ wp.customize.featuredContent.preview = (function( api ) {
 		api.preview.bind( 'featured-item-untrashed', function( id ) {
 			component.ensurePartial( id ).refresh();
 		} );
+
+		component.enableDraggableItemPositioning();
 	};
 
 	/**
@@ -51,6 +53,31 @@ wp.customize.featuredContent.preview = (function( api ) {
 			api.selectiveRefresh.partial.add( partial.id, partial );
 		}
 		return partial;
+	};
+
+	/**
+	 * Allow featured items to be re-positioned by drag-and-drop inside the preview.
+	 *
+	 * @returns {void}
+	 */
+	component.enableDraggableItemPositioning = function enableDraggableItemPositioning() {
+		$( '.featured-content-items' ).each( function() {
+			var container = $( this );
+
+			container.sortable({
+				items: '> .featured-content-item[data-customize-partial-id]',
+				axis: 'x',
+				tolerance: 'pointer',
+				stop: function() {
+					container.find( '> .featured-content-item[data-customize-partial-id]' ).each( function( i ) {
+						var partialId, positionSettingId;
+						partialId = $( this ).data( 'customize-partial-id' );
+						positionSettingId = partialId + '[position]';
+						api.preview.send( 'setting', [ positionSettingId, i ] );
+					} );
+				}
+			});
+		} );
 	};
 
 	return component;

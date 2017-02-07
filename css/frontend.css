@@ -2,6 +2,7 @@
 	margin-top: 1em;
 	margin-bottom: 1em;
 	display: flex;
+	position: relative; /* For sake of sortable items. */
 }
 .featured-content-item {
 	margin-left: 1em;
