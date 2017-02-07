@@ -1,6 +1,6 @@
 {
   "name": "customize-featured-content-demo",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "author": "Weston Ruter, XWP",
   "devDependencies": {
     "eslint": "^3.13.1",

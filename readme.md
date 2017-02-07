@@ -31,6 +31,10 @@ You may also render the items as part of your theme with the following example c
 
 ## Changelog ##
 
+### 0.2.0 ###
+* Add styling of featured item titles for both coloring and positioning (#4)[https://github.com/xwp/wp-customize-featured-content-demo/pull/4].
+* Allow featured items to be draggable in the preview (#6)[https://github.com/xwp/wp-customize-featured-content-demo/pull/6].
+
 ### 0.1.0 ###
 * Featured Items panel is contextual to previewing URLs that have featured items rendered.
 * New items can be added (via `auto-draft` status).

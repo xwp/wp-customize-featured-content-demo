@@ -7,7 +7,7 @@
  * Author URI:  https://make.xwp.co/
  * Text Domain: customize-featured-content-demo
  * Domain Path: /languages
- * Version:     0.1.0
+ * Version:     0.2.0-beta
  *
  * @package Customize_Featured_Content_Demo
  */
