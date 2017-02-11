@@ -32,7 +32,13 @@ wp.customize.selectiveRefresh.partialConstructor.featured_item = (function( api,
 			partial.params.fallbackRefresh = false;
 
 			wp.api.init().done( function() {
-				var propertyNames = _.keys( wp.api.models['Featured-items'].prototype.args );
+				var propertyNames, FeaturedItem;
+				FeaturedItem = wp.api.models['Featured-items'] || wp.api.models.FeaturedItems;
+				if ( ! FeaturedItem ) {
+					throw new Error( 'Unable to locate Backbone model for featured-items. Try clearing sessionStorage?' );
+				}
+
+				propertyNames = _.keys( FeaturedItem.prototype.args );
 				partial.params.settings = _.map( propertyNames, function( propertyName ) {
 					return partial.id + '[' + propertyName + ']';
 				} );
