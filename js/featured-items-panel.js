@@ -175,12 +175,14 @@ wp.customize.panelConstructor.featured_items = (function( api, $ ) {
 				deferred.reject( err );
 			};
 			wp.api.init().fail( reject ).done( function() {
-				var queryParams, modelName = 'Featured-items';
-				if ( ! wp.api.collections[ modelName ] || ! wp.api.models[ modelName ] ) {
+				var queryParams, FeaturedItemsCollection, FeaturedItem;
+				FeaturedItemsCollection = wp.api.collections['Featured-items'] || wp.api.collections.FeaturedItems;
+				FeaturedItem = wp.api.models['Featured-items'] || wp.api.models.FeaturedItems;
+				if ( ! FeaturedItem || ! FeaturedItemsCollection ) {
 					deferred.reject( 'Missing collection for featured-items.' );
 					return;
 				}
-				panel.FeaturedItem = wp.api.models[ modelName ];
+				panel.FeaturedItem = FeaturedItem;
 
 				/**
 				 * Get related post.
@@ -199,7 +201,7 @@ wp.customize.panelConstructor.featured_items = (function( api, $ ) {
 					);
 				};
 
-				panel.itemsCollection = new wp.api.collections[ modelName ]();
+				panel.itemsCollection = new FeaturedItemsCollection();
 				panel.itemsCollection.on( 'add', function( item ) {
 					panel.ensureSettings( item );
 					panel.ensureSection( item );
