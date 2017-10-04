@@ -1,9 +1,10 @@
 /* global JSON */
 jQuery( function( $ ) {
 	wp.api.init().done( function() {
+		var FeaturedItems, FeaturedItem;
 
-		var FeaturedItems = wp.api.collections['Featured-items'];
-		var FeaturedItem = wp.api.models['Featured-items'];
+		FeaturedItems = wp.api.collections.FeaturedItems || wp.api.collections['Featured-items'];
+		FeaturedItem = wp.api.models.FeaturedItems || wp.api.models['Featured-items'];
 
 		/**
 		 * Get related post.
