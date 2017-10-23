@@ -255,18 +255,7 @@ wp.customize.panelConstructor.featured_items = (function( api, $ ) {
 					panel.notifications.add( notificationCode, notification );
 				} );
 				promise.done( function( createdItem ) {
-					createdItem.section.expand( {
-						completeCallback: function() {
-
-							// Focus on the related post control.
-							api.control( createdItem.section.id + '[related]', function focusControl( control ) {
-								var wait = 250; // This delay seems to be required by object selector control and Select2.
-								_.delay( function() { // eslint-disable-line max-nested-callbacks
-									control.focus();
-								}, wait );
-							} );
-						}
-					} );
+					createdItem.section.expand();
 				} );
 				promise.always( function() {
 					panel.loading.set( false );
