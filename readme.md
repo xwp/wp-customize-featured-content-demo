@@ -5,7 +5,7 @@ Select items to feature on your site.
 
 **Contributors:** [westonruter](https://profiles.wordpress.org/westonruter), [xwp](https://profiles.wordpress.org/xwp)  
 **Tags:** [customize](https://wordpress.org/plugins/tags/customize)  
-**Requires at least:** 4.7.1  
+**Requires at least:** 4.9  
 **Tested up to:** 4.9  
 **Stable tag:** 0.1.0  
 **License:** [GPLv2 or later](http://www.gnu.org/licenses/gpl-2.0.html)  

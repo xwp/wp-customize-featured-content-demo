@@ -42,7 +42,6 @@ wp.customize.panelConstructor.featured_items = (function( api, $ ) {
 			var panel = this, onceActive;
 			api.Panel.prototype.ready.call( panel );
 
-			panel.notifications = new api.Values({ defaultConstructor: api.Notification });
 			panel.loading = new api.Value();
 
 			// Finish initialization once the panel is active/contextual.
@@ -64,55 +63,6 @@ wp.customize.panelConstructor.featured_items = (function( api, $ ) {
 					panel.collapse();
 				}
 			} );
-		},
-
-		/**
-		 * Setup panel notifications.
-		 *
-		 * This is partially copied from the control.
-		 *
-		 * Note that this debounced/deferred rendering is needed for two reasons:
-		 * 1) The 'remove' event is triggered just _before_ the notification is actually removed.
-		 * 2) Improve performance when adding/removing multiple notifications at a time.
-		 *
-		 * @see wp.customize.Control.prototype.initialize()
-		 * @returns {void}
-		 */
-		setupNotifications: function setupNotifications() {
-			var panel = this, debouncedRenderNotifications;
-			debouncedRenderNotifications = _.debounce( function renderNotifications() {
-				panel.renderNotifications();
-			} );
-			panel.notifications.bind( 'add', function( notification ) {
-				wp.a11y.speak( notification.message, 'assertive' );
-				debouncedRenderNotifications();
-			} );
-			panel.notifications.bind( 'remove', debouncedRenderNotifications );
-			panel.renderNotifications();
-		},
-
-		/**
-		 * Render notifications.
-		 *
-		 * Re-use method from control.
-		 */
-		renderNotifications: api.Control.prototype.renderNotifications,
-
-		/**
-		 * Get the element inside of a control's container that contains the validation error message.
-		 *
-		 * This could technically re-use the method from the control, but most of the logic in the
-		 * control's method is unnecessary.
-		 *
-		 * @see wp.customize.Control.getNotificationsContainerElement()
-		 * @returns {jQuery} Notifications container.
-		 */
-		getNotificationsContainerElement: function getNotificationsContainerElement() {
-			var panel = this;
-			if ( ! panel.notificationsContainer ) {
-				panel.notificationsContainer = panel.contentContainer.find( '.customize-control-notifications-container:first' );
-			}
-			return panel.notificationsContainer;
 		},
 
 		/**
@@ -141,7 +91,6 @@ wp.customize.panelConstructor.featured_items = (function( api, $ ) {
 		finishInitialization: function finishInitialization() {
 			var panel = this;
 
-			panel.setupNotifications();
 			panel.setupAdditionButton();
 			panel.setupSectionSorting();
 

@@ -1,7 +1,7 @@
 === Customize Featured Content (Demo) ===
 Contributors: westonruter, xwp
 Tags: customize
-Requires at least: 4.7.1
+Requires at least: 4.9
 Tested up to: 4.9
 Stable tag: 0.1.0
 License: GPLv2 or later
