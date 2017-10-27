@@ -1,7 +1,7 @@
 /* global wp */
 /* eslint consistent-this: [ "error", "control" ], no-magic-numbers: [ "error", { "ignore": [-1,0,1] } ] */
 
-wp.customize.controlConstructor.featured_item_field = (function( api, $ ) {
+wp.customize.controlConstructor.featured_item_field = (function( api ) {
 	'use strict';
 
 	/**
@@ -13,6 +13,14 @@ wp.customize.controlConstructor.featured_item_field = (function( api, $ ) {
 	 */
 	return api.Control.extend({
 
+		defaults: _.extend(
+			{},
+			api.Control.prototype.defaults,
+			{
+				placeholder: ''
+			}
+		),
+
 		/**
 		 * Constructor.
 		 *
@@ -21,32 +29,9 @@ wp.customize.controlConstructor.featured_item_field = (function( api, $ ) {
 		 * @returns {void}
 		 */
 		initialize: function( id, options ) {
-			var control = this, args;
-
-			args = options ? _.clone( options ) : {};
-			args.params = _.extend(
-				{
-					type: 'featured_item_field',
-					placeholder: ''
-				},
-				args.params
-			);
-
-			// @todo Core should do this automatically.
-			if ( ! args.params.content ) {
-				args.params.content = $( '<li></li>' );
-				args.params.content.attr( 'id', 'customize-control-' + id.replace( /]/g, '' ).replace( /\[/g, '-' ) );
-				args.params.content.attr( 'class', 'customize-control customize-control-' + args.params.type );
-			}
-
-			/*
-			 * State to manage the input placeholder value.
-			 * Note that currently this has to be set before initialize is called
-			 * because if the setting already exists it will call ready immediately.
-			 */
-			control.placeholder = new api.Value( args.params.placeholder );
-
-			api.Control.prototype.initialize.call( control, id, args );
+			var control = this;
+			control.placeholder = new api.Value();
+			api.Control.prototype.initialize.call( control, id, options );
 		},
 
 		/**
@@ -59,12 +44,9 @@ wp.customize.controlConstructor.featured_item_field = (function( api, $ ) {
 			// Allow methods to be passed around with context retained.
 			_.bindAll( control, 'updatePlaceholder' );
 
-			control.inputElement = new api.Element( control.container.find( ':input:first' ) );
-			control.inputElement.set( control.setting.get() );
-			control.inputElement.sync( control.setting );
-
 			// Update input placeholder when the placeholder state changes.
 			control.placeholder.bind( control.updatePlaceholder );
+			control.placeholder.set( control.params.placeholder );
 			control.updatePlaceholder();
 		},
 
@@ -75,8 +57,8 @@ wp.customize.controlConstructor.featured_item_field = (function( api, $ ) {
 		 */
 		updatePlaceholder: function updatePlaceholder() {
 			var control = this;
-			control.inputElement.element.prop( 'placeholder', control.placeholder.get() );
+			control.elements[0].element.prop( 'placeholder', control.placeholder.get() );
 		}
 	});
 
-})( wp.customize, jQuery );
+})( wp.customize );

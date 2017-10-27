@@ -115,12 +115,10 @@ wp.customize.panelConstructor.featured_items = (function( api, $ ) {
 		loadItems: function loadItems() {
 			var panel = this, reject, deferred = $.Deferred();
 			reject = function( err ) {
-				var notificationCode = 'load_items_failure', notification;
-				notification = new api.Notification( notificationCode, {
+				panel.notifications.add( new api.Notification( 'load_items_failure', {
 					message: panel.l10n.load_items_failure,
 					type: 'error'
-				} );
-				panel.notifications.add( notificationCode, notification );
+				} ) );
 				deferred.reject( err );
 			};
 			wp.api.init().fail( reject ).done( function() {
@@ -197,11 +195,10 @@ wp.customize.panelConstructor.featured_items = (function( api, $ ) {
 				panel.loading.set( true );
 				panel.notifications.remove( notificationCode );
 				promise.fail( function() {
-					var notification = new api.Notification( notificationCode, {
+					panel.notifications.add( new api.Notification( notificationCode, {
 						message: panel.l10n.create_item_failure,
 						type: 'error'
-					} );
-					panel.notifications.add( notificationCode, notification );
+					} ) );
 				} );
 				promise.done( function( createdItem ) {
 					createdItem.section.expand();
@@ -293,7 +290,7 @@ wp.customize.panelConstructor.featured_items = (function( api, $ ) {
 						previewer: api.previewer,
 						dirty: item.hasChanged()
 					} );
-					api.add( settingId, setting );
+					api.add( setting );
 				}
 
 				// Send the setting to the preview to ensure it exists there.
@@ -365,14 +362,11 @@ wp.customize.panelConstructor.featured_items = (function( api, $ ) {
 
 			Section = api.sectionConstructor.featured_item;
 			section = new Section( sectionId, {
-				params: {
-					id: sectionId,
-					panel: panel.id,
-					active: true,
-					item: item
-				}
+				id: sectionId,
+				panel: panel.id,
+				item: item
 			});
-			api.section.add( sectionId, section );
+			api.section.add( section );
 
 			return section;
 		},

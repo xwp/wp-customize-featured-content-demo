@@ -50,7 +50,7 @@ wp.customize.featuredContent.preview = (function( api, $ ) {
 		partial = api.selectiveRefresh.partial( partialId );
 		if ( ! partial ) {
 			partial = new api.selectiveRefresh.partialConstructor.featured_item( partialId, {} );
-			api.selectiveRefresh.partial.add( partial.id, partial );
+			api.selectiveRefresh.partial.add( partial );
 		}
 		return partial;
 	};

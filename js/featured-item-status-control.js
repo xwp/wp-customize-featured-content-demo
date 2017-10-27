@@ -1,7 +1,7 @@
 /* global wp */
 /* eslint consistent-this: [ "error", "control" ], no-magic-numbers: [ "error", { "ignore": [-1,0,1] } ] */
 
-wp.customize.controlConstructor.featured_item_status = (function( api, $ ) {
+wp.customize.controlConstructor.featured_item_status = (function( api ) {
 	'use strict';
 
 	/**
@@ -12,34 +12,6 @@ wp.customize.controlConstructor.featured_item_status = (function( api, $ ) {
 	 * @augments wp.customize.Class
 	 */
 	return api.Control.extend({
-
-		/**
-		 * Constructor.
-		 *
-		 * @param {string} id - Control ID.
-		 * @param {Object} options - Options.
-		 * @returns {void}
-		 */
-		initialize: function( id, options ) {
-			var control = this, args;
-
-			args = options ? _.clone( options ) : {};
-			args.params = _.extend(
-				{
-					type: 'featured_item_status'
-				},
-				args.params
-			);
-
-			// @todo Core should do this automatically.
-			if ( ! args.params.content ) {
-				args.params.content = $( '<li></li>' );
-				args.params.content.attr( 'id', 'customize-control-' + id.replace( /]/g, '' ).replace( /\[/g, '-' ) );
-				args.params.content.attr( 'class', 'customize-control customize-control-' + args.params.type );
-			}
-
-			api.Control.prototype.initialize.call( control, id, args );
-		},
 
 		/**
 		 * @inheritdoc
@@ -71,4 +43,4 @@ wp.customize.controlConstructor.featured_item_status = (function( api, $ ) {
 		}
 	});
 
-})( wp.customize, jQuery );
+})( wp.customize );

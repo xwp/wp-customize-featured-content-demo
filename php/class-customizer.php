@@ -226,7 +226,6 @@ class Customizer {
 	public function register( \WP_Customize_Manager $wp_customize ) {
 		$this->manager = $wp_customize;
 
-		$this->manager->register_control_type( __NAMESPACE__ . '\Featured_Item_Field_Customize_Control' );
 		$this->manager->register_control_type( __NAMESPACE__ . '\Featured_Item_Status_Customize_Control' );
 		$this->manager->register_control_type( __NAMESPACE__ . '\Featured_Item_Element_Positioning_Customize_Control' );
 
