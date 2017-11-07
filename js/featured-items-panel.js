@@ -42,7 +42,6 @@ wp.customize.panelConstructor.featured_items = (function( api, $ ) {
 			var panel = this, onceActive;
 			api.Panel.prototype.ready.call( panel );
 
-			panel.notifications = new api.Values({ defaultConstructor: api.Notification });
 			panel.loading = new api.Value();
 
 			// Finish initialization once the panel is active/contextual.
@@ -64,55 +63,6 @@ wp.customize.panelConstructor.featured_items = (function( api, $ ) {
 					panel.collapse();
 				}
 			} );
-		},
-
-		/**
-		 * Setup panel notifications.
-		 *
-		 * This is partially copied from the control.
-		 *
-		 * Note that this debounced/deferred rendering is needed for two reasons:
-		 * 1) The 'remove' event is triggered just _before_ the notification is actually removed.
-		 * 2) Improve performance when adding/removing multiple notifications at a time.
-		 *
-		 * @see wp.customize.Control.prototype.initialize()
-		 * @returns {void}
-		 */
-		setupNotifications: function setupNotifications() {
-			var panel = this, debouncedRenderNotifications;
-			debouncedRenderNotifications = _.debounce( function renderNotifications() {
-				panel.renderNotifications();
-			} );
-			panel.notifications.bind( 'add', function( notification ) {
-				wp.a11y.speak( notification.message, 'assertive' );
-				debouncedRenderNotifications();
-			} );
-			panel.notifications.bind( 'remove', debouncedRenderNotifications );
-			panel.renderNotifications();
-		},
-
-		/**
-		 * Render notifications.
-		 *
-		 * Re-use method from control.
-		 */
-		renderNotifications: api.Control.prototype.renderNotifications,
-
-		/**
-		 * Get the element inside of a control's container that contains the validation error message.
-		 *
-		 * This could technically re-use the method from the control, but most of the logic in the
-		 * control's method is unnecessary.
-		 *
-		 * @see wp.customize.Control.getNotificationsContainerElement()
-		 * @returns {jQuery} Notifications container.
-		 */
-		getNotificationsContainerElement: function getNotificationsContainerElement() {
-			var panel = this;
-			if ( ! panel.notificationsContainer ) {
-				panel.notificationsContainer = panel.contentContainer.find( '.customize-control-notifications-container:first' );
-			}
-			return panel.notificationsContainer;
 		},
 
 		/**
@@ -141,7 +91,6 @@ wp.customize.panelConstructor.featured_items = (function( api, $ ) {
 		finishInitialization: function finishInitialization() {
 			var panel = this;
 
-			panel.setupNotifications();
 			panel.setupAdditionButton();
 			panel.setupSectionSorting();
 
@@ -166,12 +115,10 @@ wp.customize.panelConstructor.featured_items = (function( api, $ ) {
 		loadItems: function loadItems() {
 			var panel = this, reject, deferred = $.Deferred();
 			reject = function( err ) {
-				var notificationCode = 'load_items_failure', notification;
-				notification = new api.Notification( notificationCode, {
+				panel.notifications.add( new api.Notification( 'load_items_failure', {
 					message: panel.l10n.load_items_failure,
 					type: 'error'
-				} );
-				panel.notifications.add( notificationCode, notification );
+				} ) );
 				deferred.reject( err );
 			};
 			wp.api.init().fail( reject ).done( function() {
@@ -248,25 +195,13 @@ wp.customize.panelConstructor.featured_items = (function( api, $ ) {
 				panel.loading.set( true );
 				panel.notifications.remove( notificationCode );
 				promise.fail( function() {
-					var notification = new api.Notification( notificationCode, {
+					panel.notifications.add( new api.Notification( notificationCode, {
 						message: panel.l10n.create_item_failure,
 						type: 'error'
-					} );
-					panel.notifications.add( notificationCode, notification );
+					} ) );
 				} );
 				promise.done( function( createdItem ) {
-					createdItem.section.expand( {
-						completeCallback: function() {
-
-							// Focus on the related post control.
-							api.control( createdItem.section.id + '[related]', function focusControl( control ) {
-								var wait = 250; // This delay seems to be required by object selector control and Select2.
-								_.delay( function() { // eslint-disable-line max-nested-callbacks
-									control.focus();
-								}, wait );
-							} );
-						}
-					} );
+					createdItem.section.expand();
 				} );
 				promise.always( function() {
 					panel.loading.set( false );
@@ -355,7 +290,7 @@ wp.customize.panelConstructor.featured_items = (function( api, $ ) {
 						previewer: api.previewer,
 						dirty: item.hasChanged()
 					} );
-					api.add( settingId, setting );
+					api.add( setting );
 				}
 
 				// Send the setting to the preview to ensure it exists there.
@@ -427,14 +362,11 @@ wp.customize.panelConstructor.featured_items = (function( api, $ ) {
 
 			Section = api.sectionConstructor.featured_item;
 			section = new Section( sectionId, {
-				params: {
-					id: sectionId,
-					panel: panel.id,
-					active: true,
-					item: item
-				}
+				id: sectionId,
+				panel: panel.id,
+				item: item
 			});
-			api.section.add( sectionId, section );
+			api.section.add( section );
 
 			return section;
 		},

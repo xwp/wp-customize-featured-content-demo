@@ -164,8 +164,21 @@ class View {
 			data-customize-partial-id="<?php echo esc_attr( "featured_item[$id]" ); ?>"
 			data-customize-partial-type="featured_item"
 		>
-			<a <?php if ( $rendered_item['url'] ) { printf( ' href="%s"', esc_url( $rendered_item['url'] ) ); } ?>>
-				<span class="title" <?php if ( $title_style ) { printf( ' style="%s"', esc_attr( $title_style ) ); } ?>>
+			<a
+				<?php
+				if ( $rendered_item['url'] ) {
+					printf( ' href="%s"', esc_url( $rendered_item['url'] ) );
+				}
+				?>
+			>
+				<span
+					class="title"
+					<?php
+					if ( $title_style ) {
+						printf( ' style="%s"', esc_attr( $title_style ) );
+					}
+					?>
+				>
 					<?php echo $rendered_item['title']; // WPCS: XSS OK. ?>
 				</span>
 				<?php if ( $rendered_item['featured_media'] ) : ?>

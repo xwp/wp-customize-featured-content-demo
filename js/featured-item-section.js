@@ -62,24 +62,23 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 		/**
 		 * Initialize.
 		 *
-		 * @param {string} id      Section ID.
-		 * @param {object} options Options.
+		 * @param {string} id      - Section ID.
+		 * @param {object} options - Options.
+		 * @param {object} [options.params] - Deprecated options wrapped in params.
 		 * @returns {void}
 		 */
 		initialize: function( id, options ) {
-			var section = this, args;
+			var section = this, params;
 
-			args = options ? _.clone( options ) : {};
-			args.params = _.extend(
+			params = _.extend(
 				{
 					title: section.l10n.no_title,
-					customizeAction: section.l10n.customize_action,
-					type: 'featured_item' // So that the list item will include the control-section-featured_item class.
+					customizeAction: section.l10n.customize_action
 				},
-				args.params || {}
+				options.params || options || {}
 			);
 
-			api.Section.prototype.initialize.call( section, id, args );
+			api.Section.prototype.initialize.call( section, id, params );
 
 			// Sync active state with panel since sections are dynamic.
 			api.panel( section.panel(), function( panel ) {
@@ -325,41 +324,33 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 				section: section.id,
 				priority: section.controlPriorities.related,
 				label: section.l10n.related_label,
-				active: true,
-				settings: {
-					'default': customizeId
-				}
+				setting: customizeId
 			};
 			if ( api.controlConstructor.object_selector ) {
-				control = new api.controlConstructor.object_selector( customizeId, {
-					params: _.extend( params, {
-						post_query_vars: {
-							post_type: [ 'post' ],
-							post_status: 'publish'
-						},
-						show_add_buttons: false,
-						select2_options: {
-							multiple: false,
-							allowClear: true,
-							placeholder: section.l10n.related_placeholder
-						}
-					} )
-				} );
+				control = new api.controlConstructor.object_selector( customizeId, _.extend( params, {
+					post_query_vars: {
+						post_type: [ 'post' ],
+						post_status: 'publish'
+					},
+					show_add_buttons: false,
+					select2_options: {
+						multiple: false,
+						allowClear: true,
+						placeholder: section.l10n.related_placeholder
+					}
+				} ) );
 			} else {
 
 				// Add an ad hoc control for displaying an informational message.
-				control = new api.Control( customizeId, {
-					params: _.extend( params, {
-						settings: {}, // Setting-less control.
-						content: wp.template( 'message-customize-control' )( {
-							label: params.label,
-							message: section.l10n.related_plugin_dependency
-						} )
-					} )
-				} );
+				control = new api.Control( customizeId, _.extend( params, {
+					settings: {}, // Setting-less control.
+					templateId: 'message-customize-control',
+					message: section.l10n.related_plugin_dependency,
+					label: params.label
+				} ) );
 			}
 
-			api.control.add( control.id, control );
+			api.control.add( control );
 
 			return control;
 		},
@@ -374,21 +365,13 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 			customizeId = section.id + '[featured_media]';
 
 			control = new api.MediaControl( customizeId, {
-				params: {
-					section: section.id,
-					priority: section.controlPriorities.featured_media,
-					label: section.l10n.featured_media_label,
-					button_labels: section.l10n.featured_image_button_labels,
-					active: true,
-					canUpload: true,
-					content: '<li class="customize-control customize-control-media"></li>',
-					description: '',
-					mime_type: 'image',
-					settings: {
-						'default': customizeId
-					},
-					type: 'media'
-				}
+				section: section.id,
+				priority: section.controlPriorities.featured_media,
+				label: section.l10n.featured_media_label,
+				button_labels: section.l10n.featured_image_button_labels,
+				canUpload: true,
+				mime_type: 'image',
+				setting: customizeId
 			} );
 
 			// @todo The wp.customize.MediaControl should do this in core.
@@ -414,7 +397,7 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 				};
 			})( control.initFrame );
 
-			api.control.add( control.id, control );
+			api.control.add( control );
 
 			return control;
 		},
@@ -449,18 +432,13 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 			var section = this, control, customizeId, updateRelatedState;
 			customizeId = section.id + '[title]'; // Both the the ID for the control and the setting.
 			control = new api.controlConstructor.featured_item_field( customizeId, {
-				params: {
-					section: section.id,
-					priority: section.controlPriorities.title,
-					label: section.l10n.title_label,
-					active: true,
-					settings: {
-						'default': customizeId
-					},
-					field_type: 'text'
-				}
+				type: 'text',
+				section: section.id,
+				priority: section.controlPriorities.title,
+				label: section.l10n.title_label,
+				setting: customizeId
 			} );
-			api.control.add( control.id, control );
+			api.control.add( control );
 
 			/**
 			 * Update the control in response to changes to the related post.
@@ -490,19 +468,12 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 			var section = this, control, customizeId;
 			customizeId = section.id + '[title_color]'; // Both the the ID for the control and the setting.
 			control = new api.ColorControl( customizeId, {
-				params: {
-					section: section.id,
-					priority: section.controlPriorities.title_color,
-					label: section.l10n.title_color_label,
-					active: true,
-					type: 'color', // Needed for template. Shouldn't be needed in the future.
-					settings: {
-						'default': customizeId
-					},
-					content: '<li class="customize-control customize-control-color"></li>' // This should not be needed in the future.
-				}
+				section: section.id,
+				priority: section.controlPriorities.title_color,
+				label: section.l10n.title_color_label,
+				setting: customizeId
 			} );
-			api.control.add( control.id, control );
+			api.control.add( control );
 
 			return control;
 		},
@@ -516,19 +487,12 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 			var section = this, control, customizeId;
 			customizeId = section.id + '[title_background]'; // Both the the ID for the control and the setting.
 			control = new api.ColorControl( customizeId, {
-				params: {
-					section: section.id,
-					priority: section.controlPriorities.title_background,
-					label: section.l10n.title_background_label,
-					active: true,
-					type: 'color', // Needed for template. Shouldn't be needed in the future.
-					settings: {
-						'default': customizeId
-					},
-					content: '<li class="customize-control customize-control-color"></li>' // This should not be needed in the future.
-				}
+				section: section.id,
+				priority: section.controlPriorities.title_background,
+				label: section.l10n.title_background_label,
+				setting: customizeId
 			} );
-			api.control.add( control.id, control );
+			api.control.add( control );
 
 			return control;
 		},
@@ -543,19 +507,16 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 			titleLeftSettingId = section.id + '[title_left]';
 			titleTopSettingId = section.id + '[title_top]';
 			control = new api.controlConstructor.featured_item_element_positioning( section.id + '[title_positioning]', {
-				params: {
-					section: section.id,
-					priority: section.controlPriorities.title_positioning,
-					label: section.l10n.title_positioning_label,
-					active: true,
-					settings: {
-						'default': titleTopSettingId,
-						top: titleTopSettingId,
-						left: titleLeftSettingId
-					}
+				section: section.id,
+				priority: section.controlPriorities.title_positioning,
+				label: section.l10n.title_positioning_label,
+				settings: {
+					'default': titleTopSettingId,
+					top: titleTopSettingId,
+					left: titleLeftSettingId
 				}
 			} );
-			api.control.add( control.id, control );
+			api.control.add( control );
 
 			return control;
 		},
@@ -569,18 +530,13 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 			var section = this, control, customizeId, updateRelatedState;
 			customizeId = section.id + '[url]'; // Both the the ID for the control and the setting.
 			control = new api.controlConstructor.featured_item_field( customizeId, {
-				params: {
-					section: section.id,
-					priority: section.controlPriorities.url,
-					label: section.l10n.url_label,
-					active: true,
-					settings: {
-						'default': customizeId
-					},
-					field_type: 'url'
-				}
+				type: 'url',
+				section: section.id,
+				priority: section.controlPriorities.url,
+				label: section.l10n.url_label,
+				setting: customizeId
 			} );
-			api.control.add( control.id, control );
+			api.control.add( control );
 
 			/**
 			 * Update the control in response to changes to the related post.
@@ -610,18 +566,13 @@ wp.customize.sectionConstructor.featured_item = (function( api, $ ) {
 			var section = this, control, customizeId;
 			customizeId = section.id + '[status]';
 			control = new api.controlConstructor.featured_item_status( customizeId, {
-				params: {
-					section: section.id,
-					priority: section.controlPriorities.status,
-					label: section.l10n.status_label,
-					active: true,
-					settings: {
-						'default': customizeId
-					}
-				}
+				section: section.id,
+				priority: section.controlPriorities.status,
+				label: section.l10n.status_label,
+				setting: customizeId
 			} );
 
-			api.control.add( control.id, control );
+			api.control.add( control );
 
 			return control;
 		}

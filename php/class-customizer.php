@@ -64,16 +64,22 @@ class Customizer {
 	 * @param string $changeset_uuid Changeset UUID.
 	 * @param string $status         Post status. Defaults top auto-draft.
 	 * @return \WP_Post[] Featured item posts.
+	 * @global \WP_Customize_Manager $wp_customize
 	 */
 	public function get_featured_items_in_changeset( $changeset_uuid, $status = 'auto-draft' ) {
+		global $wp_customize;
 		require_once ABSPATH . WPINC . '/class-wp-customize-manager.php';
-		$wp_customize = new \WP_Customize_Manager( compact( 'changeset_uuid' ) );
+		if ( ! empty( $wp_customize ) && $wp_customize->changeset_uuid() === $changeset_uuid ) {
+			$manager = $wp_customize;
+		} else {
+			$manager = new \WP_Customize_Manager( compact( 'changeset_uuid' ) );
+		}
 
 		// Make sure the featured item settings get added.
-		$wp_customize->register_dynamic_settings();
+		$manager->register_dynamic_settings();
 
 		$post_ids = array();
-		foreach ( $wp_customize->settings() as $setting ) {
+		foreach ( $manager->settings() as $setting ) {
 			if ( $setting instanceof Featured_Item_Property_Customize_Setting ) {
 				$post_ids[] = $setting->post_id;
 			}
@@ -110,6 +116,7 @@ class Customizer {
 	 * unless the changeset post itself is deleted.
 	 *
 	 * @see wp_delete_auto_drafts()
+	 * @see _wp_keep_alive_customize_changeset_dependent_auto_drafts()
 	 *
 	 * @param string   $new_status Transition to this post status.
 	 * @param string   $old_status Previous post status.
@@ -226,7 +233,6 @@ class Customizer {
 	public function register( \WP_Customize_Manager $wp_customize ) {
 		$this->manager = $wp_customize;
 
-		$this->manager->register_control_type( __NAMESPACE__ . '\Featured_Item_Field_Customize_Control' );
 		$this->manager->register_control_type( __NAMESPACE__ . '\Featured_Item_Status_Customize_Control' );
 		$this->manager->register_control_type( __NAMESPACE__ . '\Featured_Item_Element_Positioning_Customize_Control' );
 
